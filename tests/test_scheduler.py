@@ -7,6 +7,8 @@ from py_agent_runtime.runtime.config import RuntimeConfig
 from py_agent_runtime.runtime.modes import ApprovalMode
 from py_agent_runtime.scheduler.scheduler import Scheduler
 from py_agent_runtime.scheduler.types import CoreToolCallStatus, ToolCallRequestInfo
+from py_agent_runtime.tools.read_file import ReadFileTool
+from py_agent_runtime.tools.write_file import WriteFileTool
 from py_agent_runtime.tools.base import BaseTool, ToolResult
 from py_agent_runtime.tools.enter_plan_mode import EnterPlanModeTool
 
@@ -223,3 +225,23 @@ def test_scheduler_yolo_mode_auto_approves_catch_all_tool() -> None:
 
     assert result.status == CoreToolCallStatus.SUCCESS
     assert result.response.result_display == "ok"
+
+
+def test_scheduler_default_policies_allow_read_and_gate_write(tmp_path: Path) -> None:
+    (tmp_path / "note.txt").write_text("hello", encoding="utf-8")
+    config = RuntimeConfig(target_dir=tmp_path, interactive=True)
+    config.tool_registry.register_tool(ReadFileTool())
+    config.tool_registry.register_tool(WriteFileTool())
+
+    scheduler = Scheduler(config)
+    read_result = scheduler.schedule(
+        [ToolCallRequestInfo(name="read_file", args={"file_path": "note.txt"})]
+    )[0]
+    assert read_result.status == CoreToolCallStatus.SUCCESS
+    assert read_result.response.error is None
+
+    write_result = scheduler.schedule(
+        [ToolCallRequestInfo(name="write_file", args={"file_path": "new.txt", "content": "x"})]
+    )[0]
+    assert write_result.status == CoreToolCallStatus.CANCELLED
+    assert write_result.response.error_type == "cancelled"

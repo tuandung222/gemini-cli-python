@@ -18,6 +18,12 @@ For each TS module, track:
 | `packages/core/src/scheduler/confirmation.ts` | `src/py_agent_runtime/scheduler/confirmation.py` | in_progress | Correlated confirmation request/response implemented via message bus | SCH-003 |
 | `packages/core/src/tools/enter-plan-mode.ts` | `src/py_agent_runtime/tools/enter_plan_mode.py` | in_progress | Mode switch baseline done | PLN-001 |
 | `packages/core/src/tools/exit-plan-mode.ts` | `src/py_agent_runtime/tools/exit_plan_mode.py` | in_progress | Validation + mode transition done, approval dialog semantics pending | PLN-002 |
+| `packages/core/src/tools/read-file.ts` | `src/py_agent_runtime/tools/read_file.py` | done | UTF-8 read + target-dir confinement checks | TOL-001 |
+| `packages/core/src/tools/write-file.ts` | `src/py_agent_runtime/tools/write_file.py` | done | UTF-8 write + parent mkdir + target-dir confinement checks | TOL-002 |
+| `packages/core/src/tools/list-directory.ts` | `src/py_agent_runtime/tools/list_directory.py` | done | Directory listing payload with metadata and path confinement | TOL-003 |
+| `packages/core/src/tools/edit.ts` / replace path | `src/py_agent_runtime/tools/replace.py` | in_progress | Text replace baseline (single/all replace modes) with confinement | TOL-004 |
+| `packages/core/src/tools/glob.ts` | `src/py_agent_runtime/tools/glob_search.py` | done | Glob search baseline under constrained base path | TOL-005 |
+| `packages/core/src/tools/grep-search.ts` | `src/py_agent_runtime/tools/grep_search.py` | done | Grep search baseline (regex/plain, case-sensitivity, max results) | TOL-006 |
 | `packages/core/src/utils/planUtils.ts` | `src/py_agent_runtime/plans/validation.py` | in_progress | Path/content checks including symlink escape tests | PLN-003 |
 | `packages/core/src/config/config.ts` (plan-relevant parts) | `src/py_agent_runtime/runtime/config.py` | done | Mode + plans_dir + approved path + interactive policy propagation + default TOML policy auto-load | RT-001 |
 | `packages/core/src/agents/local-executor.ts` | `src/py_agent_runtime/agents/local_executor.py` | in_progress | `complete_task` contract + unauthorized guard + allowed-tool filtering (anti-recursion baseline) | AGT-001 |
@@ -60,6 +66,7 @@ For each TS module, track:
 | CLI-001 | `tests/test_cli_main.py` | CLI command wiring for `chat`, `run`, `mode`, `plan enter`, `plan exit` |
 | E2E-001 | `tests/test_golden_scenarios.py` | Golden scenario regression coverage for plan/policy/cancellation/non-interactive flows |
 | RT-001 | `tests/test_runtime_config.py`, `tests/test_policy_defaults.py` | Runtime interactive propagation + default policy auto-load behavior |
+| TOL-001..006 | `tests/test_fs_tools.py`, `tests/test_scheduler.py` | Filesystem tools behavior + scheduler default policy integration |
 
 ## Deferred items
 

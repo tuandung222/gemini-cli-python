@@ -10,12 +10,24 @@ from py_agent_runtime.llm import LLMMessage
 from py_agent_runtime.llm.factory import create_provider
 from py_agent_runtime.runtime.config import RuntimeConfig
 from py_agent_runtime.runtime.modes import ApprovalMode
+from py_agent_runtime.tools.glob_search import GlobSearchTool
+from py_agent_runtime.tools.grep_search import GrepSearchTool
 from py_agent_runtime.tools.enter_plan_mode import EnterPlanModeTool
 from py_agent_runtime.tools.exit_plan_mode import ExitPlanModeTool
+from py_agent_runtime.tools.list_directory import ListDirectoryTool
+from py_agent_runtime.tools.read_file import ReadFileTool
+from py_agent_runtime.tools.replace import ReplaceTool
+from py_agent_runtime.tools.write_file import WriteFileTool
 from py_agent_runtime.tools.write_todos import WriteTodosTool
 
 
 def _register_default_tools(config: RuntimeConfig) -> None:
+    config.tool_registry.register_tool(GlobSearchTool())
+    config.tool_registry.register_tool(GrepSearchTool())
+    config.tool_registry.register_tool(ListDirectoryTool())
+    config.tool_registry.register_tool(ReadFileTool())
+    config.tool_registry.register_tool(ReplaceTool())
+    config.tool_registry.register_tool(WriteFileTool())
     config.tool_registry.register_tool(EnterPlanModeTool())
     config.tool_registry.register_tool(ExitPlanModeTool())
     config.tool_registry.register_tool(WriteTodosTool())
