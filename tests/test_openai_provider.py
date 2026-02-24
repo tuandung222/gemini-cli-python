@@ -105,3 +105,30 @@ def test_openai_provider_does_not_retry_non_retryable_errors(
     with pytest.raises(NonRetryableError):
         provider.generate(messages=[LLMMessage(role="user", content="hello")])
     assert fake_client.chat.completions.calls == 1
+
+
+def test_openai_provider_passes_retry_backoff_settings(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    fake_client = FakeOpenAIClient()
+    captured: dict[str, object] = {}
+
+    def _fake_retry(fn, **kwargs):  # noqa: ANN001, ANN003
+        captured.update(kwargs)
+        return fn()
+
+    monkeypatch.setattr("py_agent_runtime.llm.openai_provider.call_with_retries", _fake_retry)
+    provider = OpenAIChatProvider(
+        model="gpt-4.1-mini",
+        client=fake_client,
+        max_retries=3,
+        retry_base_delay_seconds=0.25,
+        retry_max_delay_seconds=1.5,
+    )
+
+    response = provider.generate(messages=[LLMMessage(role="user", content="hello")])
+    assert response.content == "ok"
+    assert captured["max_retries"] == 3
+    assert captured["base_delay_seconds"] == 0.25
+    assert captured["max_delay_seconds"] == 1.5

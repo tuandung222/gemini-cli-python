@@ -96,3 +96,30 @@ def test_anthropic_provider_retries_transient_errors(monkeypatch: pytest.MonkeyP
     response = provider.generate(messages=[LLMMessage(role="user", content="hello")])
     assert response.content == "ok"
     assert fake_client.messages.calls == 2
+
+
+def test_anthropic_provider_passes_retry_backoff_settings(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-anthropic-key")
+    fake_client = FakeAnthropicClient()
+    captured: dict[str, object] = {}
+
+    def _fake_retry(fn, **kwargs):  # noqa: ANN001, ANN003
+        captured.update(kwargs)
+        return fn()
+
+    monkeypatch.setattr("py_agent_runtime.llm.anthropic_provider.call_with_retries", _fake_retry)
+    provider = AnthropicChatProvider(
+        model="claude-3-7-sonnet-latest",
+        client=fake_client,
+        max_retries=3,
+        retry_base_delay_seconds=0.2,
+        retry_max_delay_seconds=1.2,
+    )
+
+    response = provider.generate(messages=[LLMMessage(role="user", content="hello")])
+    assert response.content == "ok"
+    assert captured["max_retries"] == 3
+    assert captured["base_delay_seconds"] == 0.2
+    assert captured["max_delay_seconds"] == 1.2

@@ -31,6 +31,8 @@ class GeminiChatProvider(LLMProvider):
         model: str = "gemini-2.5-pro",
         api_key: str | None = None,
         max_retries: int = 2,
+        retry_base_delay_seconds: float = 0.0,
+        retry_max_delay_seconds: float | None = None,
         client: GeminiClientLike | None = None,
     ) -> None:
         effective_api_key = api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get(
@@ -44,6 +46,8 @@ class GeminiChatProvider(LLMProvider):
         self._model = model
         self._api_key = effective_api_key
         self._max_retries = max_retries
+        self._retry_base_delay_seconds = retry_base_delay_seconds
+        self._retry_max_delay_seconds = retry_max_delay_seconds
         self._client = client or self._create_client()
 
     def generate(
@@ -71,6 +75,8 @@ class GeminiChatProvider(LLMProvider):
         response = call_with_retries(
             lambda: self._client.models.generate_content(**payload),
             max_retries=self._max_retries,
+            base_delay_seconds=self._retry_base_delay_seconds,
+            max_delay_seconds=self._retry_max_delay_seconds,
         )
         return parse_gemini_generate_content(response)
 

@@ -31,6 +31,8 @@ class AnthropicChatProvider(LLMProvider):
         api_key: str | None = None,
         max_tokens: int = 2048,
         max_retries: int = 2,
+        retry_base_delay_seconds: float = 0.0,
+        retry_max_delay_seconds: float | None = None,
         client: AnthropicClientLike | None = None,
     ) -> None:
         effective_api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
@@ -43,6 +45,8 @@ class AnthropicChatProvider(LLMProvider):
         self._api_key = effective_api_key
         self._max_tokens = max_tokens
         self._max_retries = max_retries
+        self._retry_base_delay_seconds = retry_base_delay_seconds
+        self._retry_max_delay_seconds = retry_max_delay_seconds
         self._client = client or self._create_client()
 
     def generate(
@@ -72,6 +76,8 @@ class AnthropicChatProvider(LLMProvider):
         response = call_with_retries(
             lambda: self._client.messages.create(**payload),
             max_retries=self._max_retries,
+            base_delay_seconds=self._retry_base_delay_seconds,
+            max_delay_seconds=self._retry_max_delay_seconds,
         )
         return parse_anthropic_message_response(response)
 

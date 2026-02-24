@@ -34,6 +34,8 @@ class OpenAIChatProvider(LLMProvider):
         project: str | None = None,
         timeout: float | None = None,
         max_retries: int = 2,
+        retry_base_delay_seconds: float = 0.0,
+        retry_max_delay_seconds: float | None = None,
         client: OpenAIClientLike | None = None,
     ) -> None:
         effective_api_key = api_key or os.environ.get("OPENAI_API_KEY")
@@ -49,6 +51,8 @@ class OpenAIChatProvider(LLMProvider):
         self._project = project
         self._timeout = timeout
         self._max_retries = max_retries
+        self._retry_base_delay_seconds = retry_base_delay_seconds
+        self._retry_max_delay_seconds = retry_max_delay_seconds
         self._client = client or self._create_client()
 
     def generate(
@@ -72,6 +76,8 @@ class OpenAIChatProvider(LLMProvider):
         response = call_with_retries(
             lambda: self._client.chat.completions.create(**payload),
             max_retries=self._max_retries,
+            base_delay_seconds=self._retry_base_delay_seconds,
+            max_delay_seconds=self._retry_max_delay_seconds,
         )
         return parse_openai_chat_completion(response)
 
