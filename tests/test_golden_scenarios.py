@@ -101,3 +101,26 @@ def test_golden_ask_user_without_confirmation_handler_cancels(tmp_path: Path) ->
     result = scheduler.schedule([ToolCallRequestInfo(name="enter_plan_mode", args={})])[0]
     assert result.status == CoreToolCallStatus.CANCELLED
     assert result.response.error_type == "cancelled"
+
+
+def test_golden_non_interactive_ask_user_path_is_denied(tmp_path: Path) -> None:
+    config = RuntimeConfig(target_dir=tmp_path, interactive=False, plan_enabled=True)
+    config.tool_registry.register_tool(EnterPlanModeTool())
+    config.policy_engine.add_rule(
+        PolicyRule(
+            tool_name="enter_plan_mode",
+            decision=PolicyDecision.ASK_USER,
+            priority=9.0,
+        )
+    )
+
+    scheduler = Scheduler(config)
+    result = scheduler.schedule([ToolCallRequestInfo(name="enter_plan_mode", args={})])[0]
+
+    assert result.status == CoreToolCallStatus.ERROR
+    assert result.response.error_type == "policy_violation"
+    assert result.response.error is not None
+    assert (
+        "non-interactive mode" in result.response.error.lower()
+        or "denied by policy" in result.response.error.lower()
+    )

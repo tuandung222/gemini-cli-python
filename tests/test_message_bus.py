@@ -92,3 +92,16 @@ def test_message_bus_ask_user_round_trip() -> None:
     assert response.payload["confirmed"] is True
     assert response.payload["outcome"] == "proceed_always"
 
+
+def test_message_bus_request_times_out_when_no_response_message_emitted() -> None:
+    bus = MessageBus(policy_engine=PolicyEngine())
+
+    try:
+        bus.request(
+            request_type=MessageBusType.UPDATE_POLICY,
+            payload={"tool_name": "echo"},
+            response_type=MessageBusType.ASK_USER_RESPONSE,
+        )
+        raise AssertionError("Expected TimeoutError to be raised.")
+    except TimeoutError as exc:
+        assert MessageBusType.ASK_USER_RESPONSE.value in str(exc)

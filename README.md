@@ -19,20 +19,21 @@ Authentication-specific features can be simplified or omitted.
 - [x] Plan validation (`plans/validation.py`)
 - [x] Core plan tools (`enter_plan_mode`, `exit_plan_mode`, `write_todos`)
 - [x] Scheduler confirmation + policy-update loop (`scheduler/*`, `bus/message_bus.py`)
+- [x] Runtime auto-load of default policy TOMLs (`policy/defaults_loader.py`, `runtime/config.py`)
 - [x] Agent registry dynamic policy baseline (`agents/registry.py`)
 - [x] Subagent wrapper + invocation baseline with scheduler integration (`agents/subagent_tool.py`, `agents/agent_scheduler.py`)
 - [x] LLM provider core contracts + OpenAI adapter baseline (`llm/base_provider.py`, `llm/openai_provider.py`, `agents/llm_runner.py`)
 - [x] Provider factory baseline (`llm/factory.py`) with OpenAI/Gemini/Anthropic adapters wired
-- [x] CLI run wiring baseline (`cli/main.py`) for provider selection + approval mode + non-interactive
+- [x] CLI parity baseline (`cli/main.py`) for `chat`, `run`, `mode`, and `plan enter/exit`
 - [x] Completion schema enforcement baseline for `complete_task` (`agents/completion_schema.py`, `agents/llm_runner.py`, `agents/subagent_tool.py`)
-- [x] Golden scenario baseline tests for plan/deny/protocol flows (`tests/test_golden_scenarios.py`)
+- [x] Golden/e2e boundary tests for plan/deny/cancellation/non-interactive/recovery (`tests/test_golden_scenarios.py`, `tests/test_llm_runner.py`, `tests/test_message_bus.py`)
 - [x] Runtime non-interactive policy coercion baseline (`runtime/config.py`, `policy/engine.py`)
 - [x] Provider retry baseline for transient API errors across OpenAI/Gemini/Anthropic adapters (`llm/retry.py`)
 - [x] Baseline tests/lint/type-check passing (`pytest`, `ruff`, `mypy`)
 
 ## Progress snapshot
 
-- `pytest`: `86 passed`
+- `pytest`: `100 passed`
 - `ruff check src tests`: pass
 - `mypy src/py_agent_runtime`: pass
 
@@ -41,8 +42,8 @@ Phase-level status (from `docs/PORTING_PLAN.md`):
 - Phase 2-4: core baseline implemented (policy/scheduler/plan tools), parity hardening still in progress
 - Phase 5: in progress (local executor protocol + anti-recursion + dynamic subagent policy + subagent wrapper/invocation baseline + recovery turn)
 - Phase 6: in progress (provider interface + OpenAI/Gemini/Anthropic adapter baselines + factory)
-- Phase 7: in progress (CLI chat/run + approval mode + non-interactive wiring baseline)
-- Phase 8: in progress (golden/e2e baseline scenarios added; hardening still ongoing)
+- Phase 7: mostly complete (CLI chat/run/mode/plan lifecycle + approval mode and non-interactive gates)
+- Phase 8: in progress (golden/e2e hardening expanded; further parity stress tests still open)
 
 ## Local setup
 

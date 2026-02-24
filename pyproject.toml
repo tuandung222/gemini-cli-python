@@ -35,3 +35,7 @@ target-version = "py311"
 python_version = "3.11"
 strict = true
 packages = ["py_agent_runtime"]
+
+[[tool.mypy.overrides]]
+module = ["openai", "openai.*", "anthropic", "anthropic.*"]
+ignore_missing_imports = true

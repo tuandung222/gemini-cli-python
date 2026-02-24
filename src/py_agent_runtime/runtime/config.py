@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from py_agent_runtime.bus.message_bus import MessageBus
+from py_agent_runtime.policy.defaults_loader import load_default_policies
 from py_agent_runtime.policy.engine import PolicyEngine
 from py_agent_runtime.runtime.modes import ApprovalMode
 from py_agent_runtime.tools.registry import ToolRegistry
@@ -19,6 +20,7 @@ class RuntimeConfig:
     interactive: bool = True
     plan_enabled: bool = False
     approval_mode: ApprovalMode = ApprovalMode.DEFAULT
+    load_default_policies: bool = True
     approved_plan_path: Path | None = None
     policy_engine: PolicyEngine = field(default_factory=PolicyEngine)
     tool_registry: ToolRegistry = field(default_factory=ToolRegistry)
@@ -31,6 +33,13 @@ class RuntimeConfig:
         self.plans_dir = self.target_dir / ".gemini" / "tmp" / "plans"
         if self.plan_enabled:
             self.plans_dir.mkdir(parents=True, exist_ok=True)
+        if self.load_default_policies:
+            loaded = load_default_policies()
+            if loaded.errors:
+                joined_errors = "\n".join(loaded.errors)
+                raise ValueError(f"Failed to load default policy files:\n{joined_errors}")
+            for rule in loaded.rules:
+                self.policy_engine.add_rule(rule)
         self.policy_engine.set_approval_mode(self.approval_mode)
         self.policy_engine.set_non_interactive(not self.interactive)
         self.message_bus = MessageBus(policy_engine=self.policy_engine)

@@ -12,14 +12,14 @@ For each TS module, track:
 |---|---|---|---|---|
 | `packages/core/src/policy/policy-engine.ts` | `src/py_agent_runtime/policy/engine.py` | in_progress | Priority sorting + `allow/deny/ask_user` + wildcard | POL-001 |
 | `packages/core/src/policy/toml-loader.ts` | `src/py_agent_runtime/policy/loader.py` | in_progress | Tier transform (`tier + p/1000`) + TOML rule expansion | POL-002 |
-| `packages/core/src/policy/policies/plan.toml` | `src/py_agent_runtime/policy/defaults/plan.toml` | in_progress | Plan catch-all deny + explicit allows | POL-003 |
+| `packages/core/src/policy/policies/plan.toml` | `src/py_agent_runtime/policy/defaults/plan.toml` | done | Plan catch-all deny + explicit allows, auto-loaded by runtime defaults loader | POL-003 |
 | `packages/core/src/scheduler/scheduler.ts` | `src/py_agent_runtime/scheduler/scheduler.py` | in_progress | Validate -> policy -> confirmation -> execute pipeline implemented | SCH-001 |
 | `packages/core/src/scheduler/state-manager.ts` | `src/py_agent_runtime/scheduler/state_manager.py` | in_progress | Queue + completed tracking baseline | SCH-002 |
 | `packages/core/src/scheduler/confirmation.ts` | `src/py_agent_runtime/scheduler/confirmation.py` | in_progress | Correlated confirmation request/response implemented via message bus | SCH-003 |
 | `packages/core/src/tools/enter-plan-mode.ts` | `src/py_agent_runtime/tools/enter_plan_mode.py` | in_progress | Mode switch baseline done | PLN-001 |
 | `packages/core/src/tools/exit-plan-mode.ts` | `src/py_agent_runtime/tools/exit_plan_mode.py` | in_progress | Validation + mode transition done, approval dialog semantics pending | PLN-002 |
 | `packages/core/src/utils/planUtils.ts` | `src/py_agent_runtime/plans/validation.py` | in_progress | Path/content checks including symlink escape tests | PLN-003 |
-| `packages/core/src/config/config.ts` (plan-relevant parts) | `src/py_agent_runtime/runtime/config.py` | in_progress | Mode + plans_dir + approved path + interactive policy propagation baseline | RT-001 |
+| `packages/core/src/config/config.ts` (plan-relevant parts) | `src/py_agent_runtime/runtime/config.py` | done | Mode + plans_dir + approved path + interactive policy propagation + default TOML policy auto-load | RT-001 |
 | `packages/core/src/agents/local-executor.ts` | `src/py_agent_runtime/agents/local_executor.py` | in_progress | `complete_task` contract + unauthorized guard + allowed-tool filtering (anti-recursion baseline) | AGT-001 |
 | `packages/core/src/agents/registry.ts` | `src/py_agent_runtime/agents/registry.py` | in_progress | Dynamic policy registration for local/remote agents implemented | AGT-002 |
 | `packages/core/src/agents/subagent-tool-wrapper.ts` | `src/py_agent_runtime/agents/subagent_tool.py` | in_progress | Subagent tool wrapper + local invocation baseline implemented | AGT-003 |
@@ -33,8 +33,8 @@ For each TS module, track:
 | `packages/core/src/core/geminiChat.ts` (Anthropic adapter path) | `src/py_agent_runtime/llm/anthropic_provider.py` | in_progress | Anthropic messages adapter baseline with env key loading | LLM-004 |
 | `packages/core/src/core/geminiChat.ts` (provider selection path) | `src/py_agent_runtime/llm/factory.py` | in_progress | Provider factory routes `openai`/`gemini`/`anthropic` | LLM-005 |
 | `packages/core/src/core/geminiChat.ts` (retry/error mapping path) | `src/py_agent_runtime/llm/retry.py` | in_progress | Transient error retry helper used by provider adapters | LLM-006 |
-| `packages/cli/src/config/config.ts` (approval/non-interactive) | `src/py_agent_runtime/cli/main.py` | in_progress | CLI run command wires approval mode + non-interactive + completion schema file baseline | CLI-001 |
-| `packages/core/src/agents/local-executor.test.ts` + scheduler/policy e2e paths | `tests/test_golden_scenarios.py` | in_progress | Golden scenario baseline (plan lifecycle, missing plan, policy deny) | E2E-001 |
+| `packages/cli/src/config/config.ts` (approval/non-interactive) | `src/py_agent_runtime/cli/main.py` | done | CLI supports `chat`, `run`, `mode`, `plan enter`, and `plan exit` with approval-mode + non-interactive controls | CLI-001 |
+| `packages/core/src/agents/local-executor.test.ts` + scheduler/policy e2e paths | `tests/test_golden_scenarios.py` | in_progress | Golden scenarios cover plan lifecycle, missing plan, policy deny, cancellation, and non-interactive boundary | E2E-001 |
 
 ## Current test mapping
 
@@ -42,6 +42,7 @@ For each TS module, track:
 |---|---|---|
 | POL-001 | `tests/test_policy_engine.py` | Plan precedence + non-interactive coercion |
 | POL-002 | `tests/test_policy_loader.py` | Tier transform + array expansion |
+| POL-003 | `tests/test_policy_defaults.py` | Default policy TOMLs load and enforce mode-specific decisions (plan/autoEdit/yolo) |
 | PLN-003 | `tests/test_plan_validation.py` | Path traversal/symlink/content validation |
 | SCH-001 | `tests/test_scheduler.py` | Scheduler allow/deny baseline |
 | AGT-001 | `tests/test_local_executor.py` | `complete_task` protocol + unauthorized-tool guard + allowed-tool filtering |
@@ -55,9 +56,10 @@ For each TS module, track:
 | LLM-004 | `tests/test_anthropic_provider.py` | Anthropic adapter env key handling and request/response mapping |
 | LLM-005 | `tests/test_llm_factory.py` | Provider factory routing coverage |
 | LLM-006 | `tests/test_llm_retry.py` | Retry helper behavior on transient vs non-retryable API errors |
-| CLI-001 | `tests/test_cli_main.py` | CLI command wiring for chat/run and non-interactive approval mode |
-| E2E-001 | `tests/test_golden_scenarios.py` | Golden scenario regression coverage for plan/policy/cancellation flows |
-| RT-001 | `tests/test_runtime_config.py` | Runtime interactive mode propagates to policy non-interactive coercion |
+| BUS-001 | `tests/test_message_bus.py` | Confirmation auto allow/deny/ask-user flow + request timeout boundary |
+| CLI-001 | `tests/test_cli_main.py` | CLI command wiring for `chat`, `run`, `mode`, `plan enter`, `plan exit` |
+| E2E-001 | `tests/test_golden_scenarios.py` | Golden scenario regression coverage for plan/policy/cancellation/non-interactive flows |
+| RT-001 | `tests/test_runtime_config.py`, `tests/test_policy_defaults.py` | Runtime interactive propagation + default policy auto-load behavior |
 
 ## Deferred items
 

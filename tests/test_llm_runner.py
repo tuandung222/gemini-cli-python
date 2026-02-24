@@ -275,3 +275,70 @@ def test_llm_runner_non_interactive_denies_ask_user_tool() -> None:
     assert result.success is False
     assert result.error is not None
     assert "denied by policy" in result.error.lower()
+
+
+def test_llm_runner_recovery_turn_can_rescue_tool_execution_failure() -> None:
+    config = RuntimeConfig(target_dir=Path("."), interactive=False)
+    echo = EchoTool()
+    config.tool_registry.register_tool(echo)
+    config.policy_engine.add_rule(
+        PolicyRule(
+            tool_name="echo",
+            decision=PolicyDecision.ASK_USER,
+            priority=9.0,
+        )
+    )
+
+    provider = FakeProvider(
+        responses=[
+            LLMTurnResponse(
+                content=None,
+                tool_calls=[
+                    LLMToolCall(name="echo", args={"text": "blocked"}, call_id="c1"),
+                ],
+            ),
+            LLMTurnResponse(
+                content=None,
+                tool_calls=[
+                    LLMToolCall(
+                        name="complete_task",
+                        args={"result": "fallback answer"},
+                        call_id="done1",
+                    ),
+                ],
+            ),
+        ]
+    )
+    runner = LLMAgentRunner(config=config, provider=provider, max_turns=3)
+    result = runner.run("do task")
+
+    assert result.success is True
+    assert result.result == "fallback answer"
+    assert result.turns == 2
+    assert echo.calls == []
+
+
+def test_llm_runner_recovery_turn_rejects_non_complete_tool_calls() -> None:
+    config = RuntimeConfig(target_dir=Path("."), interactive=True)
+    echo = EchoTool()
+    config.tool_registry.register_tool(echo)
+    _allow_tool(config, "echo")
+
+    provider = FakeProvider(
+        responses=[
+            LLMTurnResponse(content="stopped", tool_calls=[]),
+            LLMTurnResponse(
+                content=None,
+                tool_calls=[
+                    LLMToolCall(name="echo", args={"text": "still not done"}, call_id="c2"),
+                ],
+            ),
+        ]
+    )
+    runner = LLMAgentRunner(config=config, provider=provider, max_turns=1)
+    result = runner.run("do task")
+
+    assert result.success is False
+    assert result.error is not None
+    assert "complete_task" in result.error
+    assert result.turns == 1

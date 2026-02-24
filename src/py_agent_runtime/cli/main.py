@@ -38,14 +38,18 @@ def _chat_command(
     return 0
 
 
+def _print_json_payload(payload: dict[str, Any]) -> None:
+    print(json.dumps(payload, ensure_ascii=False, indent=2))
+
+
 def _run_command(args: argparse.Namespace) -> int:
     provider = create_provider(args.provider, model=args.model)
     config = RuntimeConfig(
         target_dir=Path.cwd(),
         interactive=not args.non_interactive,
         plan_enabled=args.plan_enabled,
+        approval_mode=ApprovalMode(args.approval_mode),
     )
-    config.set_approval_mode(ApprovalMode(args.approval_mode))
     _register_default_tools(config)
     completion_schema = _load_completion_schema(args.completion_schema_file)
 
@@ -59,21 +63,104 @@ def _run_command(args: argparse.Namespace) -> int:
         completion_schema=completion_schema,
     )
     result = runner.run(user_prompt=args.prompt, system_prompt=args.system_prompt)
-    print(
-        json.dumps(
-            {
-                "success": result.success,
-                "result": result.result,
-                "error": result.error,
-                "turns": result.turns,
-                "approval_mode": config.get_approval_mode().value,
-                "interactive": config.interactive,
-            },
-            ensure_ascii=False,
-            indent=2,
-        )
+    _print_json_payload(
+        {
+            "success": result.success,
+            "result": result.result,
+            "error": result.error,
+            "turns": result.turns,
+            "approval_mode": config.get_approval_mode().value,
+            "interactive": config.interactive,
+        }
     )
     return 0 if result.success else 2
+
+
+def _mode_command(args: argparse.Namespace) -> int:
+    config = RuntimeConfig(
+        target_dir=Path.cwd(),
+        interactive=not args.non_interactive,
+        plan_enabled=args.plan_enabled,
+        approval_mode=ApprovalMode(args.approval_mode),
+    )
+    _print_json_payload(
+        {
+            "success": True,
+            "approval_mode": config.get_approval_mode().value,
+            "interactive": config.interactive,
+            "plan_enabled": args.plan_enabled,
+            "plans_dir": str(config.plans_dir),
+        }
+    )
+    return 0
+
+
+def _plan_enter_command(args: argparse.Namespace) -> int:
+    config = RuntimeConfig(
+        target_dir=Path.cwd(),
+        interactive=not args.non_interactive,
+        plan_enabled=True,
+        approval_mode=ApprovalMode.DEFAULT,
+    )
+    tool = EnterPlanModeTool()
+    params: dict[str, Any] = {}
+    reason = str(args.reason or "").strip()
+    if reason:
+        params["reason"] = reason
+    result = tool.execute(config=config, params=params)
+    _print_json_payload(
+        {
+            "success": result.error is None,
+            "result_display": result.return_display,
+            "error": result.error,
+            "approval_mode": config.get_approval_mode().value,
+            "interactive": config.interactive,
+        }
+    )
+    return 0 if result.error is None else 2
+
+
+def _plan_exit_command(args: argparse.Namespace) -> int:
+    config = RuntimeConfig(
+        target_dir=Path.cwd(),
+        interactive=not args.non_interactive,
+        plan_enabled=True,
+        approval_mode=ApprovalMode.PLAN,
+    )
+    tool = ExitPlanModeTool()
+    params: dict[str, Any] = {
+        "plan_path": args.plan_path,
+        "approved": not args.rejected,
+        "approval_mode": args.approval_mode,
+    }
+    feedback = args.feedback
+    if isinstance(feedback, str) and feedback.strip():
+        params["feedback"] = feedback.strip()
+
+    result = tool.execute(config=config, params=params)
+    approved_plan_path = config.get_approved_plan_path()
+    _print_json_payload(
+        {
+            "success": result.error is None,
+            "result_display": result.return_display,
+            "error": result.error,
+            "approval_mode": config.get_approval_mode().value,
+            "interactive": config.interactive,
+            "approved_plan_path": (
+                str(approved_plan_path) if approved_plan_path is not None else None
+            ),
+        }
+    )
+    return 0 if result.error is None else 2
+
+
+def _plan_command(args: argparse.Namespace) -> int:
+    if args.plan_command == "enter":
+        return _plan_enter_command(args)
+    if args.plan_command == "exit":
+        return _plan_exit_command(args)
+    print("Error: missing plan subcommand. Use `plan enter` or `plan exit`.")
+    return 1
 
 
 def _load_completion_schema(schema_file: str | None) -> dict[str, Any] | None:
@@ -151,6 +238,68 @@ def main() -> int:
         default=None,
         help="Optional path to JSON Schema for validating complete_task result output.",
     )
+    mode_parser = subparsers.add_parser(
+        "mode",
+        help="Inspect approval mode and interactive flags for a runtime session.",
+    )
+    mode_parser.add_argument(
+        "--approval-mode",
+        default=ApprovalMode.DEFAULT.value,
+        choices=[mode.value for mode in ApprovalMode],
+        help="Approval mode policy.",
+    )
+    mode_parser.add_argument(
+        "--non-interactive",
+        action="store_true",
+        help="Disable interactive confirmations (ask_user => deny).",
+    )
+    mode_parser.add_argument(
+        "--plan-enabled",
+        action="store_true",
+        help="Enable Plan Mode directory scaffolding.",
+    )
+
+    plan_parser = subparsers.add_parser("plan", help="Run plan-mode lifecycle helpers.")
+    plan_subparsers = plan_parser.add_subparsers(dest="plan_command")
+    plan_enter_parser = plan_subparsers.add_parser("enter", help="Enter plan mode.")
+    plan_enter_parser.add_argument(
+        "--reason",
+        default="",
+        help="Optional reason displayed in plan-mode message.",
+    )
+    plan_enter_parser.add_argument(
+        "--non-interactive",
+        action="store_true",
+        help="Disable interactive confirmations for this command context.",
+    )
+
+    plan_exit_parser = plan_subparsers.add_parser("exit", help="Exit plan mode with approval.")
+    plan_exit_parser.add_argument(
+        "--plan-path",
+        required=True,
+        help="Relative path to a markdown plan under .gemini/tmp/plans.",
+    )
+    plan_exit_parser.add_argument(
+        "--approval-mode",
+        default=ApprovalMode.DEFAULT.value,
+        choices=[ApprovalMode.DEFAULT.value, ApprovalMode.AUTO_EDIT.value],
+        help="Post-plan approval mode.",
+    )
+    plan_exit_parser.add_argument(
+        "--rejected",
+        action="store_true",
+        help="Reject plan instead of approving it.",
+    )
+    plan_exit_parser.add_argument(
+        "--feedback",
+        default=None,
+        help="Optional feedback when rejecting a plan.",
+    )
+    plan_exit_parser.add_argument(
+        "--non-interactive",
+        action="store_true",
+        help="Disable interactive confirmations for this command context.",
+    )
 
     args = parser.parse_args()
     try:
@@ -158,6 +307,10 @@ def main() -> int:
             return _chat_command(args.prompt, args.provider, args.model, args.temperature)
         if args.command == "run":
             return _run_command(args)
+        if args.command == "mode":
+            return _mode_command(args)
+        if args.command == "plan":
+            return _plan_command(args)
     except Exception as exc:
         print(f"Error: {exc}")
         return 2

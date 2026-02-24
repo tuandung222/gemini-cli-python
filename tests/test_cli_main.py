@@ -126,3 +126,77 @@ def test_cli_run_command_rejects_invalid_schema_file(monkeypatch, capsys, tmp_pa
     captured = capsys.readouterr()
     assert code == 2
     assert "Invalid completion schema JSON file" in captured.out
+
+
+def test_cli_mode_command_sets_approval_mode(monkeypatch, capsys) -> None:  # noqa: ANN001
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "py-agent-runtime",
+            "mode",
+            "--approval-mode",
+            "yolo",
+            "--non-interactive",
+        ],
+    )
+    code = cli_main.main()
+    captured = capsys.readouterr()
+    assert code == 0
+
+    payload = json.loads(captured.out)
+    assert payload["approval_mode"] == "yolo"
+    assert payload["interactive"] is False
+
+
+def test_cli_plan_enter_command_switches_to_plan_mode(monkeypatch, capsys, tmp_path) -> None:  # noqa: ANN001
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "py-agent-runtime",
+            "plan",
+            "enter",
+            "--reason",
+            "Draft implementation steps",
+        ],
+    )
+    code = cli_main.main()
+    captured = capsys.readouterr()
+    assert code == 0
+
+    payload = json.loads(captured.out)
+    assert payload["success"] is True
+    assert payload["approval_mode"] == "plan"
+    assert "Switching to Plan mode" in payload["result_display"]
+
+
+def test_cli_plan_exit_command_approves_plan(monkeypatch, capsys, tmp_path) -> None:  # noqa: ANN001
+    monkeypatch.chdir(tmp_path)
+    plan_dir = tmp_path / ".gemini" / "tmp" / "plans"
+    plan_dir.mkdir(parents=True, exist_ok=True)
+    plan_file = plan_dir / "implementation.md"
+    plan_file.write_text("# Plan\n- Build feature\n", encoding="utf-8")
+
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "py-agent-runtime",
+            "plan",
+            "exit",
+            "--plan-path",
+            ".gemini/tmp/plans/implementation.md",
+            "--approval-mode",
+            "autoEdit",
+        ],
+    )
+    code = cli_main.main()
+    captured = capsys.readouterr()
+    assert code == 0
+
+    payload = json.loads(captured.out)
+    assert payload["success"] is True
+    assert payload["approval_mode"] == "autoEdit"
+    assert payload["approved_plan_path"] == str(plan_file.resolve())
