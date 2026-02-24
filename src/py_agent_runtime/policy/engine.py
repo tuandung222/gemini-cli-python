@@ -46,6 +46,12 @@ class PolicyEngine:
     def get_approval_mode(self) -> ApprovalMode:
         return self._approval_mode
 
+    def set_non_interactive(self, non_interactive: bool) -> None:
+        self._non_interactive = non_interactive
+
+    def get_non_interactive(self) -> bool:
+        return self._non_interactive
+
     def add_rule(self, rule: PolicyRule) -> None:
         self._rules.append(rule)
         self._rules.sort(key=lambda item: item.priority, reverse=True)
@@ -97,4 +103,3 @@ class PolicyEngine:
         if self._non_interactive and decision == PolicyDecision.ASK_USER:
             return PolicyDecision.DENY
         return decision
-

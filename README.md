@@ -26,11 +26,12 @@ Authentication-specific features can be simplified or omitted.
 - [x] CLI run wiring baseline (`cli/main.py`) for provider selection + approval mode + non-interactive
 - [x] Completion schema enforcement baseline for `complete_task` (`agents/completion_schema.py`, `agents/llm_runner.py`, `agents/subagent_tool.py`)
 - [x] Golden scenario baseline tests for plan/deny/protocol flows (`tests/test_golden_scenarios.py`)
+- [x] Runtime non-interactive policy coercion baseline (`runtime/config.py`, `policy/engine.py`)
 - [x] Baseline tests/lint/type-check passing (`pytest`, `ruff`, `mypy`)
 
 ## Progress snapshot
 
-- `pytest`: `66 passed`
+- `pytest`: `69 passed`
 - `ruff check src tests`: pass
 - `mypy src/py_agent_runtime`: pass
 

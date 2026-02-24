@@ -19,7 +19,7 @@ For each TS module, track:
 | `packages/core/src/tools/enter-plan-mode.ts` | `src/py_agent_runtime/tools/enter_plan_mode.py` | in_progress | Mode switch baseline done | PLN-001 |
 | `packages/core/src/tools/exit-plan-mode.ts` | `src/py_agent_runtime/tools/exit_plan_mode.py` | in_progress | Validation + mode transition done, approval dialog semantics pending | PLN-002 |
 | `packages/core/src/utils/planUtils.ts` | `src/py_agent_runtime/plans/validation.py` | in_progress | Path/content checks including symlink escape tests | PLN-003 |
-| `packages/core/src/config/config.ts` (plan-relevant parts) | `src/py_agent_runtime/runtime/config.py` | in_progress | Mode + plans_dir + approved path baseline | RT-001 |
+| `packages/core/src/config/config.ts` (plan-relevant parts) | `src/py_agent_runtime/runtime/config.py` | in_progress | Mode + plans_dir + approved path + interactive policy propagation baseline | RT-001 |
 | `packages/core/src/agents/local-executor.ts` | `src/py_agent_runtime/agents/local_executor.py` | in_progress | `complete_task` contract + unauthorized guard + allowed-tool filtering (anti-recursion baseline) | AGT-001 |
 | `packages/core/src/agents/registry.ts` | `src/py_agent_runtime/agents/registry.py` | in_progress | Dynamic policy registration for local/remote agents implemented | AGT-002 |
 | `packages/core/src/agents/subagent-tool-wrapper.ts` | `src/py_agent_runtime/agents/subagent_tool.py` | in_progress | Subagent tool wrapper + local invocation baseline implemented | AGT-003 |
@@ -55,6 +55,7 @@ For each TS module, track:
 | LLM-005 | `tests/test_llm_factory.py` | Provider factory routing coverage |
 | CLI-001 | `tests/test_cli_main.py` | CLI command wiring for chat/run and non-interactive approval mode |
 | E2E-001 | `tests/test_golden_scenarios.py` | Golden scenario regression coverage for plan/policy flows |
+| RT-001 | `tests/test_runtime_config.py` | Runtime interactive mode propagates to policy non-interactive coercion |
 
 ## Deferred items
 

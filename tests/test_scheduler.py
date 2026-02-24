@@ -137,3 +137,25 @@ def test_scheduler_results_do_not_leak_between_schedule_calls() -> None:
 
     assert len(first) == 1
     assert len(second) == 1
+
+
+def test_scheduler_non_interactive_blocks_ask_user_tools() -> None:
+    config = RuntimeConfig(target_dir=Path("."), interactive=False, plan_enabled=True)
+    config.tool_registry.register_tool(EnterPlanModeTool())
+    config.policy_engine.add_rule(
+        PolicyRule(
+            tool_name="enter_plan_mode",
+            decision=PolicyDecision.ASK_USER,
+            priority=9.0,
+        )
+    )
+
+    scheduler = Scheduler(config)
+    result = scheduler.schedule([ToolCallRequestInfo(name="enter_plan_mode", args={})])[0]
+    assert result.status == CoreToolCallStatus.ERROR
+    assert result.response.error_type == "policy_violation"
+    assert result.response.error is not None
+    assert (
+        "non-interactive mode" in result.response.error
+        or "denied by policy" in result.response.error.lower()
+    )

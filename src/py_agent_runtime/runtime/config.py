@@ -32,6 +32,7 @@ class RuntimeConfig:
         if self.plan_enabled:
             self.plans_dir.mkdir(parents=True, exist_ok=True)
         self.policy_engine.set_approval_mode(self.approval_mode)
+        self.policy_engine.set_non_interactive(not self.interactive)
         self.message_bus = MessageBus(policy_engine=self.policy_engine)
         from py_agent_runtime.agents.registry import AgentRegistry
 
@@ -43,6 +44,10 @@ class RuntimeConfig:
 
     def get_approval_mode(self) -> ApprovalMode:
         return self.approval_mode
+
+    def set_interactive(self, interactive: bool) -> None:
+        self.interactive = interactive
+        self.policy_engine.set_non_interactive(not interactive)
 
     def set_approved_plan_path(self, path: Path | None) -> None:
         self.approved_plan_path = path
