@@ -32,7 +32,7 @@ For each TS module, track:
 | `packages/core/src/core/geminiChat.ts` (Gemini adapter path) | `src/py_agent_runtime/llm/gemini_provider.py` | in_progress | Gemini generate-content adapter baseline with env key loading | LLM-003 |
 | `packages/core/src/core/geminiChat.ts` (Anthropic adapter path) | `src/py_agent_runtime/llm/anthropic_provider.py` | in_progress | Anthropic messages adapter baseline with env key loading | LLM-004 |
 | `packages/core/src/core/geminiChat.ts` (provider selection path) | `src/py_agent_runtime/llm/factory.py` | in_progress | Provider factory routes `openai`/`gemini`/`anthropic` | LLM-005 |
-| `packages/cli/src/config/config.ts` (approval/non-interactive) | `src/py_agent_runtime/cli/main.py` | in_progress | CLI run command wires approval mode + non-interactive config baseline | CLI-001 |
+| `packages/cli/src/config/config.ts` (approval/non-interactive) | `src/py_agent_runtime/cli/main.py` | in_progress | CLI run command wires approval mode + non-interactive + completion schema file baseline | CLI-001 |
 | `packages/core/src/agents/local-executor.test.ts` + scheduler/policy e2e paths | `tests/test_golden_scenarios.py` | in_progress | Golden scenario baseline (plan lifecycle, missing plan, policy deny) | E2E-001 |
 
 ## Current test mapping
@@ -54,7 +54,7 @@ For each TS module, track:
 | LLM-004 | `tests/test_anthropic_provider.py` | Anthropic adapter env key handling and request/response mapping |
 | LLM-005 | `tests/test_llm_factory.py` | Provider factory routing coverage |
 | CLI-001 | `tests/test_cli_main.py` | CLI command wiring for chat/run and non-interactive approval mode |
-| E2E-001 | `tests/test_golden_scenarios.py` | Golden scenario regression coverage for plan/policy flows |
+| E2E-001 | `tests/test_golden_scenarios.py` | Golden scenario regression coverage for plan/policy/cancellation flows |
 | RT-001 | `tests/test_runtime_config.py` | Runtime interactive mode propagates to policy non-interactive coercion |
 
 ## Deferred items

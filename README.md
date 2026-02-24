@@ -31,7 +31,7 @@ Authentication-specific features can be simplified or omitted.
 
 ## Progress snapshot
 
-- `pytest`: `69 passed`
+- `pytest`: `72 passed`
 - `ruff check src tests`: pass
 - `mypy src/py_agent_runtime`: pass
 
@@ -99,6 +99,15 @@ Agent loop command (provider -> scheduler -> tools):
 ```bash
 cd /Users/admin/TuanDung/repos/gemini-cli-python
 .venv/bin/python -m py_agent_runtime.cli.main run --prompt "Create a plan and finish with complete_task"
+```
+
+Agent loop with completion schema validation:
+
+```bash
+cd /Users/admin/TuanDung/repos/gemini-cli-python
+.venv/bin/python -m py_agent_runtime.cli.main run \
+  --prompt "Return structured summary" \
+  --completion-schema-file /absolute/path/to/schema.json
 ```
 
 ## Next implementation target

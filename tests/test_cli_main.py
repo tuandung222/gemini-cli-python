@@ -19,9 +19,11 @@ class FakeProvider:
 
 class FakeRunner:
     last_config = None
+    last_kwargs = None
 
     def __init__(self, config, provider, **kwargs):  # noqa: ANN001, ANN003
         FakeRunner.last_config = config
+        FakeRunner.last_kwargs = dict(kwargs)
 
     def run(self, user_prompt: str, system_prompt: str | None = None) -> AgentRunResult:
         return AgentRunResult(success=True, result="ok", error=None, turns=1)
@@ -72,3 +74,55 @@ def test_cli_run_command_wires_non_interactive_and_approval_mode(monkeypatch, ca
     assert FakeRunner.last_config is not None
     assert FakeRunner.last_config.interactive is False
     assert FakeRunner.last_config.get_approval_mode() == ApprovalMode.AUTO_EDIT
+
+
+def test_cli_run_command_loads_completion_schema_file(monkeypatch, capsys, tmp_path) -> None:  # noqa: ANN001
+    monkeypatch.setattr(cli_main, "create_provider", lambda provider, model: FakeProvider(model))
+    monkeypatch.setattr(cli_main, "LLMAgentRunner", FakeRunner)
+
+    schema_file = tmp_path / "schema.json"
+    schema_file.write_text('{"type":"object","required":["summary"]}', encoding="utf-8")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "py-agent-runtime",
+            "run",
+            "--prompt",
+            "Do work",
+            "--completion-schema-file",
+            str(schema_file),
+        ],
+    )
+    code = cli_main.main()
+    _ = capsys.readouterr()
+    assert code == 0
+    assert FakeRunner.last_kwargs is not None
+    assert FakeRunner.last_kwargs.get("completion_schema") == {
+        "type": "object",
+        "required": ["summary"],
+    }
+
+
+def test_cli_run_command_rejects_invalid_schema_file(monkeypatch, capsys, tmp_path) -> None:  # noqa: ANN001
+    monkeypatch.setattr(cli_main, "create_provider", lambda provider, model: FakeProvider(model))
+    monkeypatch.setattr(cli_main, "LLMAgentRunner", FakeRunner)
+
+    schema_file = tmp_path / "schema.json"
+    schema_file.write_text("{", encoding="utf-8")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "py-agent-runtime",
+            "run",
+            "--prompt",
+            "Do work",
+            "--completion-schema-file",
+            str(schema_file),
+        ],
+    )
+    code = cli_main.main()
+    captured = capsys.readouterr()
+    assert code == 2
+    assert "Invalid completion schema JSON file" in captured.out

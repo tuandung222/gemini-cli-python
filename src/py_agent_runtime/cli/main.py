@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from typing import Any
 
 from py_agent_runtime.agents.llm_runner import LLMAgentRunner
 from py_agent_runtime.llm import LLMMessage
@@ -46,6 +47,7 @@ def _run_command(args: argparse.Namespace) -> int:
     )
     config.set_approval_mode(ApprovalMode(args.approval_mode))
     _register_default_tools(config)
+    completion_schema = _load_completion_schema(args.completion_schema_file)
 
     runner = LLMAgentRunner(
         config=config,
@@ -54,6 +56,7 @@ def _run_command(args: argparse.Namespace) -> int:
         model=args.model,
         temperature=args.temperature,
         enable_recovery_turn=not args.disable_recovery_turn,
+        completion_schema=completion_schema,
     )
     result = runner.run(user_prompt=args.prompt, system_prompt=args.system_prompt)
     print(
@@ -71,6 +74,21 @@ def _run_command(args: argparse.Namespace) -> int:
         )
     )
     return 0 if result.success else 2
+
+
+def _load_completion_schema(schema_file: str | None) -> dict[str, Any] | None:
+    if schema_file is None:
+        return None
+    path = Path(schema_file)
+    try:
+        parsed = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise ValueError(f"Invalid completion schema JSON file: {path}: {exc}") from exc
+    if not isinstance(parsed, dict):
+        raise ValueError(
+            f"Invalid completion schema JSON file: {path}: top-level value must be an object."
+        )
+    return parsed
 
 
 def main() -> int:
@@ -127,6 +145,11 @@ def main() -> int:
         "--disable-recovery-turn",
         action="store_true",
         help="Disable one final recovery turn when protocol/max-turn limits are hit.",
+    )
+    run_parser.add_argument(
+        "--completion-schema-file",
+        default=None,
+        help="Optional path to JSON Schema for validating complete_task result output.",
     )
 
     args = parser.parse_args()
