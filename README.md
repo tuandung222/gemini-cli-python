@@ -22,19 +22,23 @@ Authentication-specific features can be simplified or omitted.
 - [x] Agent registry dynamic policy baseline (`agents/registry.py`)
 - [x] Subagent wrapper + invocation baseline with scheduler integration (`agents/subagent_tool.py`, `agents/agent_scheduler.py`)
 - [x] LLM provider core contracts + OpenAI adapter baseline (`llm/base_provider.py`, `llm/openai_provider.py`, `agents/llm_runner.py`)
+- [x] Provider factory baseline (`llm/factory.py`) with OpenAI active and Gemini/Anthropic placeholders
+- [x] CLI run wiring baseline (`cli/main.py`) for provider selection + approval mode + non-interactive
 - [x] Baseline tests/lint/type-check passing (`pytest`, `ruff`, `mypy`)
 
 ## Progress snapshot
 
-- `pytest`: `43 passed`
+- `pytest`: `51 passed`
 - `ruff check src tests`: pass
 - `mypy src/py_agent_runtime`: pass
 
 Phase-level status (from `docs/PORTING_PLAN.md`):
 - Phase 0-1: mostly complete (scope freeze + skeleton/types)
 - Phase 2-4: core baseline implemented (policy/scheduler/plan tools), parity hardening still in progress
-- Phase 5: in progress (local executor protocol + anti-recursion + dynamic subagent policy + subagent wrapper/invocation baseline)
-- Phase 6-8: not started (provider adapters, CLI parity, end-to-end hardening)
+- Phase 5: in progress (local executor protocol + anti-recursion + dynamic subagent policy + subagent wrapper/invocation baseline + recovery turn)
+- Phase 6: in progress (provider interface + OpenAI adapter + provider factory baseline)
+- Phase 7: in progress (CLI chat/run + approval mode + non-interactive wiring baseline)
+- Phase 8: pending (parity hardening/e2e suite expansion)
 
 ## Local setup
 
@@ -76,12 +80,19 @@ cd /Users/admin/TuanDung/repos/gemini-cli-python
 .venv/bin/python -m py_agent_runtime.cli.main chat --prompt "Say hello from OpenAI adapter"
 ```
 
+Agent loop command (provider -> scheduler -> tools):
+
+```bash
+cd /Users/admin/TuanDung/repos/gemini-cli-python
+.venv/bin/python -m py_agent_runtime.cli.main run --prompt "Create a plan and finish with complete_task"
+```
+
 ## Next implementation target
 
 Implement next parity milestones:
-- harden Phase 5 with richer subagent turn loop semantics and final-warning recovery behavior,
-- expand Phase 6 with Gemini/Anthropic adapters on top of existing OpenAI baseline,
-- start minimal CLI mode wiring for approval/non-interactive behavior.
+- harden Phase 5 with stronger completion schema enforcement and richer recovery tests,
+- implement real Gemini/Anthropic adapters (factory currently has OpenAI fully implemented; others are stubs),
+- expand Phase 8 golden/e2e scenarios for denial/cancellation/planning paths.
 
 ## Scope notes
 

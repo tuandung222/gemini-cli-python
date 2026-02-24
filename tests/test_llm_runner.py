@@ -126,3 +126,49 @@ def test_llm_runner_requires_complete_task() -> None:
     assert result.error is not None
     assert "complete_task" in result.error
 
+
+def test_llm_runner_uses_recovery_turn_on_protocol_violation() -> None:
+    config = RuntimeConfig(target_dir=Path("."), interactive=True)
+    provider = FakeProvider(
+        responses=[
+            LLMTurnResponse(content="stopped", tool_calls=[]),
+            LLMTurnResponse(
+                content=None,
+                tool_calls=[
+                    LLMToolCall(name="complete_task", args={"result": "recovered answer"})
+                ],
+            ),
+        ]
+    )
+    runner = LLMAgentRunner(config=config, provider=provider, max_turns=1)
+    result = runner.run("do task")
+
+    assert result.success is True
+    assert result.result == "recovered answer"
+    assert result.turns == 2
+
+
+def test_llm_runner_can_disable_recovery_turn() -> None:
+    config = RuntimeConfig(target_dir=Path("."), interactive=True)
+    echo = EchoTool()
+    config.tool_registry.register_tool(echo)
+    _allow_tool(config, "echo")
+    provider = FakeProvider(
+        responses=[
+            LLMTurnResponse(
+                content=None,
+                tool_calls=[LLMToolCall(name="echo", args={"text": "work"})],
+            )
+        ]
+    )
+    runner = LLMAgentRunner(
+        config=config,
+        provider=provider,
+        max_turns=1,
+        enable_recovery_turn=False,
+    )
+    result = runner.run("do task")
+
+    assert result.success is False
+    assert result.error is not None
+    assert "exceeded max turns" in result.error

@@ -28,7 +28,8 @@ For each TS module, track:
 | `packages/core/src/agents/local-executor.ts` (LLM call loop parts) | `src/py_agent_runtime/agents/llm_runner.py` | in_progress | Provider-driven tool-call loop baseline with scheduler + `complete_task` contract | AGT-005 |
 | `packages/core/src/core/geminiChat.ts` (provider abstraction surface) | `src/py_agent_runtime/llm/base_provider.py` | in_progress | Canonical provider interface for multi-model adapters | LLM-001 |
 | `packages/core/src/core/geminiChat.ts` (OpenAI-parity target) | `src/py_agent_runtime/llm/openai_provider.py` | in_progress | OpenAI chat-completions adapter with env key loading | LLM-002 |
-| `packages/cli/src/config/config.ts` (approval/non-interactive) | `src/py_agent_runtime/cli/main.py` | planned | CLI mode flags/exclusions pending | CLI-001 |
+| `packages/core/src/core/geminiChat.ts` (provider selection path) | `src/py_agent_runtime/llm/factory.py` | in_progress | Provider factory baseline (`openai` active, `gemini`/`anthropic` stubs) | LLM-003 |
+| `packages/cli/src/config/config.ts` (approval/non-interactive) | `src/py_agent_runtime/cli/main.py` | in_progress | CLI run command wires approval mode + non-interactive config baseline | CLI-001 |
 
 ## Current test mapping
 
@@ -44,6 +45,8 @@ For each TS module, track:
 | AGT-005 | `tests/test_llm_runner.py` | Provider-driven agent loop with scheduler and complete_task termination |
 | LLM-001 | `tests/test_llm_normalizer.py` | Canonical message/tool-call normalization for OpenAI payloads |
 | LLM-002 | `tests/test_openai_provider.py` | OpenAI adapter env key handling and request serialization |
+| LLM-003 | `tests/test_llm_factory.py` | Provider factory routing + stub behavior coverage |
+| CLI-001 | `tests/test_cli_main.py` | CLI command wiring for chat/run and non-interactive approval mode |
 
 ## Deferred items
 

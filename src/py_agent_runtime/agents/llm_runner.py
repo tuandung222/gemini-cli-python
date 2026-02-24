@@ -36,6 +36,7 @@ class LLMAgentRunner:
         scheduler_id: str = "root_agent",
         model: str | None = None,
         temperature: float | None = None,
+        enable_recovery_turn: bool = True,
     ) -> None:
         self._config = config
         self._provider = provider
@@ -43,6 +44,7 @@ class LLMAgentRunner:
         self._scheduler_id = scheduler_id
         self._model = model
         self._temperature = temperature
+        self._enable_recovery_turn = enable_recovery_turn
 
     def run(self, user_prompt: str, system_prompt: str | None = None) -> AgentRunResult:
         messages: list[LLMMessage] = []
@@ -73,14 +75,15 @@ class LLMAgentRunner:
             )
 
             if not llm_response.tool_calls:
-                return AgentRunResult(
-                    success=False,
-                    result=None,
-                    error=(
+                return self._failure_with_optional_recovery(
+                    messages=messages,
+                    tool_schemas=tool_schemas,
+                    turn=turn,
+                    fallback_error=(
                         "Agent stopped calling tools without calling "
                         f"'{TASK_COMPLETE_TOOL_NAME}' to finalize the session."
                     ),
-                    turns=turn,
+                    reason="no_tool_calls",
                 )
 
             function_calls = [
@@ -93,11 +96,12 @@ class LLMAgentRunner:
                 enforce_complete_task=False,
             )
             if processed.errors:
-                return AgentRunResult(
-                    success=False,
-                    result=None,
-                    error="; ".join(processed.errors),
-                    turns=turn,
+                return self._failure_with_optional_recovery(
+                    messages=messages,
+                    tool_schemas=tool_schemas,
+                    turn=turn,
+                    fallback_error="; ".join(processed.errors),
+                    reason="protocol_violation",
                 )
 
             request_infos = [
@@ -126,11 +130,12 @@ class LLMAgentRunner:
                         )
                     )
                     if completed_call.status in {CoreToolCallStatus.ERROR, CoreToolCallStatus.CANCELLED}:
-                        return AgentRunResult(
-                            success=False,
-                            result=None,
-                            error=completed_call.response.error or "Tool execution failed.",
-                            turns=turn,
+                        return self._failure_with_optional_recovery(
+                            messages=messages,
+                            tool_schemas=tool_schemas,
+                            turn=turn,
+                            fallback_error=completed_call.response.error or "Tool execution failed.",
+                            reason="tool_execution_failed",
                         )
 
             if processed.task_completed:
@@ -142,21 +147,23 @@ class LLMAgentRunner:
                 )
 
             if not request_infos:
-                return AgentRunResult(
-                    success=False,
-                    result=None,
-                    error=(
+                return self._failure_with_optional_recovery(
+                    messages=messages,
+                    tool_schemas=tool_schemas,
+                    turn=turn,
+                    fallback_error=(
                         "Agent did not invoke executable tools and did not call "
                         f"'{TASK_COMPLETE_TOOL_NAME}'."
                     ),
-                    turns=turn,
+                    reason="no_executable_calls",
                 )
 
-        return AgentRunResult(
-            success=False,
-            result=None,
-            error=f"Agent exceeded max turns ({self._max_turns}) without completing task.",
-            turns=self._max_turns,
+        return self._failure_with_optional_recovery(
+            messages=messages,
+            tool_schemas=tool_schemas,
+            turn=self._max_turns,
+            fallback_error=f"Agent exceeded max turns ({self._max_turns}) without completing task.",
+            reason="max_turns",
         )
 
     def _build_allowed_tool_names(self) -> set[str]:
@@ -197,3 +204,67 @@ class LLMAgentRunner:
             "error_type": completed_call.response.error_type,
         }
         return json.dumps(payload, default=str, sort_keys=True)
+
+    def _failure_with_optional_recovery(
+        self,
+        *,
+        messages: list[LLMMessage],
+        tool_schemas: list[dict[str, Any]],
+        turn: int,
+        fallback_error: str,
+        reason: str,
+    ) -> AgentRunResult:
+        if not self._enable_recovery_turn:
+            return AgentRunResult(success=False, result=None, error=fallback_error, turns=turn)
+
+        recovered = self._attempt_final_recovery(messages, tool_schemas, turn=turn + 1, reason=reason)
+        if recovered is not None:
+            return recovered
+        return AgentRunResult(success=False, result=None, error=fallback_error, turns=turn)
+
+    def _attempt_final_recovery(
+        self,
+        messages: list[LLMMessage],
+        tool_schemas: list[dict[str, Any]],
+        *,
+        turn: int,
+        reason: str,
+    ) -> AgentRunResult | None:
+        recovery_prompt = (
+            f"Execution limit reached ({reason}). Final recovery turn: call "
+            f"`{TASK_COMPLETE_TOOL_NAME}` immediately with your best available answer. "
+            "Do not call any other tools."
+        )
+        recovery_messages = [*messages, LLMMessage(role="user", content=recovery_prompt)]
+        try:
+            recovery_response = self._provider.generate(
+                messages=recovery_messages,
+                tools=tool_schemas,
+                model=self._model,
+                temperature=self._temperature,
+            )
+        except Exception:
+            return None
+        recovery_calls = [
+            FunctionCall(name=call.name, args=call.args, call_id=call.call_id)
+            for call in recovery_response.tool_calls
+        ]
+        if not recovery_calls:
+            return None
+        non_complete = [call for call in recovery_calls if call.name != TASK_COMPLETE_TOOL_NAME]
+        if non_complete:
+            return None
+
+        processed = LocalAgentExecutor.process_function_calls(
+            function_calls=recovery_calls,
+            allowed_tool_names=set(),
+            enforce_complete_task=False,
+        )
+        if not processed.task_completed:
+            return None
+        return AgentRunResult(
+            success=True,
+            result=processed.submitted_output or "",
+            error=None,
+            turns=turn,
+        )
