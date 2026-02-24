@@ -1,0 +1,11 @@
+[[rule]]
+toolName = "ask_user"
+decision = "ask_user"
+priority = 999
+modes = ["yolo"]
+
+[[rule]]
+decision = "allow"
+priority = 998
+modes = ["yolo"]
+

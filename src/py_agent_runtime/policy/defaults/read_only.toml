@@ -1,0 +1,5 @@
+[[rule]]
+toolName = ["glob", "grep_search", "list_directory", "read_file"]
+decision = "allow"
+priority = 50
+

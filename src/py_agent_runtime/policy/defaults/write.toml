@@ -1,0 +1,11 @@
+[[rule]]
+toolName = ["write_file", "replace"]
+decision = "ask_user"
+priority = 10
+
+[[rule]]
+toolName = ["write_file", "replace"]
+decision = "allow"
+priority = 15
+modes = ["autoEdit"]
+

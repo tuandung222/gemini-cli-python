@@ -1,0 +1,25 @@
+[[rule]]
+decision = "deny"
+priority = 60
+modes = ["plan"]
+deny_message = "You are in Plan Mode with access to read-only tools."
+
+[[rule]]
+toolName = ["glob", "grep_search", "list_directory", "read_file", "activate_skill"]
+decision = "allow"
+priority = 70
+modes = ["plan"]
+
+[[rule]]
+toolName = ["ask_user", "exit_plan_mode"]
+decision = "ask_user"
+priority = 70
+modes = ["plan"]
+
+[[rule]]
+toolName = ["write_file", "replace"]
+decision = "allow"
+priority = 70
+modes = ["plan"]
+argsPattern = "\"file_path\":\"[^\"]+/\\.gemini/tmp/.+/plans/[^\"]+\\.md\""
+
