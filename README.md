@@ -28,6 +28,7 @@ Build and validation follow a parity-first, TDD-oriented process:
 ## Where to start reading
 
 - Full reading roadmap: `docs/CODE_READING_GUIDE.md`
+- Subagent architecture deep dive: `docs/SUBAGENT_TECHNICAL_ARCHITECTURE.md`
 - Entrypoint:
   - `pyproject.toml`: script `py-agent-runtime = "py_agent_runtime.cli.main:main"`
   - `src/py_agent_runtime/cli/main.py`: `main()` and `_run_command(...)`
