@@ -20,7 +20,7 @@ For each TS module, track:
 | `packages/core/src/tools/exit-plan-mode.ts` | `src/py_agent_runtime/tools/exit_plan_mode.py` | in_progress | Validation + mode transition done, approval dialog semantics pending | PLN-002 |
 | `packages/core/src/utils/planUtils.ts` | `src/py_agent_runtime/plans/validation.py` | in_progress | Path/content checks including symlink escape tests | PLN-003 |
 | `packages/core/src/config/config.ts` (plan-relevant parts) | `src/py_agent_runtime/runtime/config.py` | in_progress | Mode + plans_dir + approved path baseline | RT-001 |
-| `packages/core/src/agents/local-executor.ts` | `src/py_agent_runtime/agents/local_executor.py` | in_progress | `complete_task` terminal contract + unauthorized tool-call guard baseline | AGT-001 |
+| `packages/core/src/agents/local-executor.ts` | `src/py_agent_runtime/agents/local_executor.py` | in_progress | `complete_task` contract + unauthorized guard + allowed-tool filtering (anti-recursion baseline) | AGT-001 |
 | `packages/core/src/agents/registry.ts` | `src/py_agent_runtime/agents/registry.py` | in_progress | Dynamic policy registration for local/remote agents implemented | AGT-002 |
 | `packages/core/src/confirmation-bus/message-bus.ts` | `src/py_agent_runtime/bus/message_bus.py` | in_progress | Pub/sub + synchronous request/response + policy-aware confirmation handling | BUS-001 |
 | `packages/cli/src/config/config.ts` (approval/non-interactive) | `src/py_agent_runtime/cli/main.py` | planned | CLI mode flags/exclusions pending | CLI-001 |
@@ -33,7 +33,7 @@ For each TS module, track:
 | POL-002 | `tests/test_policy_loader.py` | Tier transform + array expansion |
 | PLN-003 | `tests/test_plan_validation.py` | Path traversal/symlink/content validation |
 | SCH-001 | `tests/test_scheduler.py` | Scheduler allow/deny baseline |
-| AGT-001 | `tests/test_local_executor.py` | `complete_task` protocol + unauthorized-tool guard baseline |
+| AGT-001 | `tests/test_local_executor.py` | `complete_task` protocol + unauthorized-tool guard + allowed-tool filtering |
 | AGT-002 | `tests/test_agent_registry.py` | Dynamic policy behavior for subagent registration |
 
 ## Deferred items

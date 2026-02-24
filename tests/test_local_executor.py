@@ -48,3 +48,20 @@ def test_authorized_non_complete_tool_still_requires_complete_task() -> None:
     )
     assert result.task_completed is False
     assert result.terminate_reason == AgentTerminateMode.ERROR_NO_COMPLETE_TASK_CALL
+
+
+def test_build_allowed_tool_names_filters_subagents() -> None:
+    allowed = LocalAgentExecutor.build_allowed_tool_names(
+        available_tool_names={"read_file", "write_file", "generalist"},
+        all_agent_names={"generalist"},
+    )
+    assert allowed == {"read_file", "write_file"}
+
+
+def test_build_allowed_tool_names_filters_missing_tools() -> None:
+    allowed = LocalAgentExecutor.build_allowed_tool_names(
+        available_tool_names={"read_file", "write_file"},
+        all_agent_names={"generalist"},
+        configured_tool_names=["read_file", "generalist", "nonexistent"],
+    )
+    assert allowed == {"read_file"}

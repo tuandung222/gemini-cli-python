@@ -108,3 +108,18 @@ class LocalAgentExecutor:
                 f"'{TASK_COMPLETE_TOOL_NAME}' to finalize the session."
             ],
         )
+
+    @staticmethod
+    def build_allowed_tool_names(
+        available_tool_names: AbstractSet[str],
+        all_agent_names: AbstractSet[str],
+        configured_tool_names: list[str] | None = None,
+    ) -> set[str]:
+        requested = configured_tool_names or sorted(available_tool_names)
+        allowed: set[str] = set()
+        for tool_name in requested:
+            if tool_name in all_agent_names:
+                continue
+            if tool_name in available_tool_names:
+                allowed.add(tool_name)
+        return allowed
