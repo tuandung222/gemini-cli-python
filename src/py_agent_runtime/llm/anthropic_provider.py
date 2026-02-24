@@ -10,6 +10,7 @@ from py_agent_runtime.llm.normalizer import (
     to_anthropic_messages,
     to_anthropic_tools,
 )
+from py_agent_runtime.llm.retry import call_with_retries
 from py_agent_runtime.llm.types import LLMMessage, LLMTurnResponse
 
 
@@ -29,6 +30,7 @@ class AnthropicChatProvider(LLMProvider):
         model: str = "claude-3-7-sonnet-latest",
         api_key: str | None = None,
         max_tokens: int = 2048,
+        max_retries: int = 2,
         client: AnthropicClientLike | None = None,
     ) -> None:
         effective_api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
@@ -40,6 +42,7 @@ class AnthropicChatProvider(LLMProvider):
         self._model = model
         self._api_key = effective_api_key
         self._max_tokens = max_tokens
+        self._max_retries = max_retries
         self._client = client or self._create_client()
 
     def generate(
@@ -66,7 +69,10 @@ class AnthropicChatProvider(LLMProvider):
         if temperature is not None:
             payload["temperature"] = temperature
 
-        response = self._client.messages.create(**payload)
+        response = call_with_retries(
+            lambda: self._client.messages.create(**payload),
+            max_retries=self._max_retries,
+        )
         return parse_anthropic_message_response(response)
 
     def _create_client(self) -> AnthropicClientLike:

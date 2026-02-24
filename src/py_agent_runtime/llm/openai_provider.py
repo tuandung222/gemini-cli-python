@@ -5,6 +5,7 @@ from typing import Any, Protocol, Sequence, cast
 
 from py_agent_runtime.llm.base_provider import LLMProvider
 from py_agent_runtime.llm.normalizer import parse_openai_chat_completion, to_openai_messages
+from py_agent_runtime.llm.retry import call_with_retries
 from py_agent_runtime.llm.types import LLMMessage, LLMTurnResponse
 
 
@@ -32,6 +33,7 @@ class OpenAIChatProvider(LLMProvider):
         organization: str | None = None,
         project: str | None = None,
         timeout: float | None = None,
+        max_retries: int = 2,
         client: OpenAIClientLike | None = None,
     ) -> None:
         effective_api_key = api_key or os.environ.get("OPENAI_API_KEY")
@@ -46,6 +48,7 @@ class OpenAIChatProvider(LLMProvider):
         self._organization = organization
         self._project = project
         self._timeout = timeout
+        self._max_retries = max_retries
         self._client = client or self._create_client()
 
     def generate(
@@ -66,7 +69,10 @@ class OpenAIChatProvider(LLMProvider):
         if temperature is not None:
             payload["temperature"] = temperature
 
-        response = self._client.chat.completions.create(**payload)
+        response = call_with_retries(
+            lambda: self._client.chat.completions.create(**payload),
+            max_retries=self._max_retries,
+        )
         return parse_openai_chat_completion(response)
 
     def _create_client(self) -> OpenAIClientLike:

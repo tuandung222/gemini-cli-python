@@ -11,9 +11,14 @@ from py_agent_runtime.llm.types import LLMMessage
 class FakeCompletions:
     def __init__(self) -> None:
         self.last_payload: dict[str, object] | None = None
+        self.calls = 0
+        self.failures: list[Exception] = []
 
     def create(self, **kwargs: object) -> object:
+        self.calls += 1
         self.last_payload = dict(kwargs)
+        if self.failures:
+            raise self.failures.pop(0)
         return SimpleNamespace(
             choices=[
                 SimpleNamespace(
@@ -27,6 +32,18 @@ class FakeCompletions:
 class FakeOpenAIClient:
     def __init__(self) -> None:
         self.chat = SimpleNamespace(completions=FakeCompletions())
+
+
+class RetryableError(RuntimeError):
+    def __init__(self, message: str, status_code: int) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+
+
+class NonRetryableError(RuntimeError):
+    def __init__(self, message: str, status_code: int) -> None:
+        super().__init__(message)
+        self.status_code = status_code
 
 
 def test_openai_provider_requires_env_key(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -62,3 +79,29 @@ def test_openai_provider_reads_env_and_calls_chat_api(monkeypatch: pytest.Monkey
     assert payload["temperature"] == 0.2
     assert isinstance(payload["messages"], list)
 
+
+def test_openai_provider_retries_transient_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    fake_client = FakeOpenAIClient()
+    fake_client.chat.completions.failures = [
+        RetryableError("rate limited", 429),
+        RetryableError("service unavailable", 503),
+    ]
+    provider = OpenAIChatProvider(model="gpt-4.1-mini", client=fake_client, max_retries=2)
+
+    response = provider.generate(messages=[LLMMessage(role="user", content="hello")])
+    assert response.content == "ok"
+    assert fake_client.chat.completions.calls == 3
+
+
+def test_openai_provider_does_not_retry_non_retryable_errors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    fake_client = FakeOpenAIClient()
+    fake_client.chat.completions.failures = [NonRetryableError("bad request", 400)]
+    provider = OpenAIChatProvider(model="gpt-4.1-mini", client=fake_client, max_retries=3)
+
+    with pytest.raises(NonRetryableError):
+        provider.generate(messages=[LLMMessage(role="user", content="hello")])
+    assert fake_client.chat.completions.calls == 1

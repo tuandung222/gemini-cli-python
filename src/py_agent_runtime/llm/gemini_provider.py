@@ -11,6 +11,7 @@ from py_agent_runtime.llm.normalizer import (
     to_gemini_contents,
     to_gemini_tools,
 )
+from py_agent_runtime.llm.retry import call_with_retries
 from py_agent_runtime.llm.types import LLMMessage, LLMTurnResponse
 
 
@@ -29,6 +30,7 @@ class GeminiChatProvider(LLMProvider):
         *,
         model: str = "gemini-2.5-pro",
         api_key: str | None = None,
+        max_retries: int = 2,
         client: GeminiClientLike | None = None,
     ) -> None:
         effective_api_key = api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get(
@@ -41,6 +43,7 @@ class GeminiChatProvider(LLMProvider):
 
         self._model = model
         self._api_key = effective_api_key
+        self._max_retries = max_retries
         self._client = client or self._create_client()
 
     def generate(
@@ -65,7 +68,10 @@ class GeminiChatProvider(LLMProvider):
         if config:
             payload["config"] = config
 
-        response = self._client.models.generate_content(**payload)
+        response = call_with_retries(
+            lambda: self._client.models.generate_content(**payload),
+            max_retries=self._max_retries,
+        )
         return parse_gemini_generate_content(response)
 
     def _create_client(self) -> GeminiClientLike:
