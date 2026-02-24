@@ -24,6 +24,7 @@ For each TS module, track:
 | `packages/core/src/tools/edit.ts` / replace path | `src/py_agent_runtime/tools/replace.py` | in_progress | Text replace baseline (single/all replace modes) with confinement | TOL-004 |
 | `packages/core/src/tools/glob.ts` | `src/py_agent_runtime/tools/glob_search.py` | done | Glob search baseline under constrained base path | TOL-005 |
 | `packages/core/src/tools/grep-search.ts` | `src/py_agent_runtime/tools/grep_search.py` | done | Grep search baseline (regex/plain, case-sensitivity, max results) | TOL-006 |
+| `packages/core/src/tools/shell.ts` / `run-shell-command` path | `src/py_agent_runtime/tools/run_shell_command.py` | in_progress | Shell execution baseline with timeout + cwd confinement + structured stdout/stderr | TOL-007 |
 | `packages/core/src/utils/planUtils.ts` | `src/py_agent_runtime/plans/validation.py` | in_progress | Path/content checks including symlink escape tests | PLN-003 |
 | `packages/core/src/config/config.ts` (plan-relevant parts) | `src/py_agent_runtime/runtime/config.py` | done | Mode + plans_dir + approved path + interactive policy propagation + default TOML policy auto-load | RT-001 |
 | `packages/core/src/agents/local-executor.ts` | `src/py_agent_runtime/agents/local_executor.py` | in_progress | `complete_task` contract + unauthorized guard + allowed-tool filtering (anti-recursion baseline) | AGT-001 |

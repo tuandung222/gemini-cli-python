@@ -10,9 +10,11 @@ def test_runtime_config_loads_default_policy_rules() -> None:
 
     read_result = config.policy_engine.check(PolicyCheckInput(name="read_file"))
     write_result = config.policy_engine.check(PolicyCheckInput(name="write_file"))
+    shell_result = config.policy_engine.check(PolicyCheckInput(name="run_shell_command"))
 
     assert read_result.decision == PolicyDecision.ALLOW
     assert write_result.decision == PolicyDecision.ASK_USER
+    assert shell_result.decision == PolicyDecision.ASK_USER
 
 
 def test_auto_edit_mode_allows_write_tools_from_default_policies() -> None:

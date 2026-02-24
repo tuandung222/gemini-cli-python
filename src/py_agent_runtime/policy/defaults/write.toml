@@ -1,5 +1,5 @@
 [[rule]]
-toolName = ["write_file", "replace"]
+toolName = ["write_file", "replace", "run_shell_command"]
 decision = "ask_user"
 priority = 10
 
@@ -8,4 +8,3 @@ toolName = ["write_file", "replace"]
 decision = "allow"
 priority = 15
 modes = ["autoEdit"]
-

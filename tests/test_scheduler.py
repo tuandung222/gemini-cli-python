@@ -8,6 +8,7 @@ from py_agent_runtime.runtime.modes import ApprovalMode
 from py_agent_runtime.scheduler.scheduler import Scheduler
 from py_agent_runtime.scheduler.types import CoreToolCallStatus, ToolCallRequestInfo
 from py_agent_runtime.tools.read_file import ReadFileTool
+from py_agent_runtime.tools.run_shell_command import RunShellCommandTool
 from py_agent_runtime.tools.write_file import WriteFileTool
 from py_agent_runtime.tools.base import BaseTool, ToolResult
 from py_agent_runtime.tools.enter_plan_mode import EnterPlanModeTool
@@ -245,3 +246,16 @@ def test_scheduler_default_policies_allow_read_and_gate_write(tmp_path: Path) ->
     )[0]
     assert write_result.status == CoreToolCallStatus.CANCELLED
     assert write_result.response.error_type == "cancelled"
+
+
+def test_scheduler_default_policies_gate_shell_tool_when_registered(tmp_path: Path) -> None:
+    config = RuntimeConfig(target_dir=tmp_path, interactive=True)
+    config.tool_registry.register_tool(RunShellCommandTool())
+    scheduler = Scheduler(config)
+
+    result = scheduler.schedule(
+        [ToolCallRequestInfo(name="run_shell_command", args={"command": "echo hi"})]
+    )[0]
+
+    assert result.status == CoreToolCallStatus.CANCELLED
+    assert result.response.error_type == "cancelled"

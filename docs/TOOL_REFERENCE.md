@@ -38,6 +38,16 @@ This document summarizes built-in tools currently registered by the CLI runtime.
   - Errors if `old_text` is not found.
   - Denies path escape outside target directory.
 
+### `run_shell_command`
+- Purpose: execute shell command in constrained working directory.
+- Params:
+  - `command` (string, required)
+  - `cwd` (string, optional, default `"."`)
+  - `timeout_seconds` (integer, optional, default `120`)
+- Notes:
+  - Denies `cwd` escape outside target directory.
+  - Returns structured `stdout`, `stderr`, and `exit_code`.
+
 ### `glob`
 - Purpose: find path matches with glob pattern.
 - Params:
