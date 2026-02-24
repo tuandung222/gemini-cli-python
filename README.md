@@ -38,17 +38,17 @@ Authentication-specific features can be simplified or omitted.
 
 ## Progress snapshot
 
-- `pytest`: `130 passed`
+- `pytest`: `141 passed`
 - `ruff check src tests`: pass
 - `mypy src/py_agent_runtime`: pass
 
 Phase-level status (from `docs/PORTING_PLAN.md`):
-- Phase 0-1: mostly complete (scope freeze + skeleton/types)
-- Phase 2-4: core baseline implemented (policy/scheduler/plan tools), parity hardening still in progress
-- Phase 5: in progress (local executor protocol + anti-recursion + dynamic subagent policy + subagent wrapper/invocation baseline + recovery turn)
-- Phase 6: in progress (provider interface + OpenAI/Gemini/Anthropic adapter baselines + factory)
-- Phase 7: mostly complete (CLI chat/run/mode/plan lifecycle + approval mode and non-interactive gates)
-- Phase 8: in progress (golden/e2e hardening expanded; further parity stress tests still open)
+- Phase 0-1: complete
+- Phase 2-4: complete
+- Phase 5: complete
+- Phase 6: complete
+- Phase 7: complete
+- Phase 8: complete (MVP parity regression suite green)
 
 ## Local setup
 
@@ -128,11 +128,13 @@ cd /Users/admin/TuanDung/repos/gemini-cli-python
   --completion-schema-file /absolute/path/to/schema.json
 ```
 
-## Next implementation target
+## Completion status
 
-Implement next parity milestones:
-- strengthen provider parity for advanced tool-call edge cases and retry/backoff paths,
-- expand Phase 8 golden/e2e scenarios for cancellation/non-interactive/recovery boundary conditions.
+MVP parity scope in `docs/PORTING_PLAN.md` is complete.
+Deferred scope remains:
+- auth/OAuth provider complexity,
+- IDE-integration specific UX,
+- full extension ecosystem management surface.
 
 ## Scope notes
 

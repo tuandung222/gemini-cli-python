@@ -10,49 +10,49 @@ For each TS module, track:
 
 | TS module | Python target | Status | Notes | Test ID |
 |---|---|---|---|---|
-| `packages/core/src/policy/policy-engine.ts` | `src/py_agent_runtime/policy/engine.py` | in_progress | Priority sorting + `allow/deny/ask_user` + wildcard | POL-001 |
-| `packages/core/src/policy/toml-loader.ts` | `src/py_agent_runtime/policy/loader.py` | in_progress | Tier transform (`tier + p/1000`) + TOML rule expansion | POL-002 |
+| `packages/core/src/policy/policy-engine.ts` | `src/py_agent_runtime/policy/engine.py` | done | Priority sorting + `allow/deny/ask_user` + wildcard + shell redirection safety downgrade | POL-001 |
+| `packages/core/src/policy/toml-loader.ts` | `src/py_agent_runtime/policy/loader.py` | done | Tier transform (`tier + p/1000`) + TOML rule expansion + commandPrefix/commandRegex support | POL-002 |
 | `packages/core/src/policy/policies/plan.toml` | `src/py_agent_runtime/policy/defaults/plan.toml` | done | Plan catch-all deny + explicit allows, auto-loaded by runtime defaults loader | POL-003 |
-| `packages/core/src/scheduler/scheduler.ts` | `src/py_agent_runtime/scheduler/scheduler.py` | in_progress | Validate -> policy -> confirmation -> execute pipeline implemented | SCH-001 |
-| `packages/core/src/scheduler/state-manager.ts` | `src/py_agent_runtime/scheduler/state_manager.py` | in_progress | Queue + completed tracking baseline | SCH-002 |
-| `packages/core/src/scheduler/confirmation.ts` | `src/py_agent_runtime/scheduler/confirmation.py` | in_progress | Correlated confirmation request/response implemented via message bus | SCH-003 |
-| `packages/core/src/tools/enter-plan-mode.ts` | `src/py_agent_runtime/tools/enter_plan_mode.py` | in_progress | Mode switch baseline done | PLN-001 |
-| `packages/core/src/tools/exit-plan-mode.ts` | `src/py_agent_runtime/tools/exit_plan_mode.py` | in_progress | Validation + mode transition done, approval dialog semantics pending | PLN-002 |
+| `packages/core/src/scheduler/scheduler.ts` | `src/py_agent_runtime/scheduler/scheduler.py` | done | Validate -> policy -> confirmation -> execute pipeline with non-interactive gates and dynamic confirmation rules | SCH-001 |
+| `packages/core/src/scheduler/state-manager.ts` | `src/py_agent_runtime/scheduler/state_manager.py` | done | Queue + completed tracking with drain semantics covered by regression tests | SCH-002 |
+| `packages/core/src/scheduler/confirmation.ts` | `src/py_agent_runtime/scheduler/confirmation.py` | done | Correlated confirmation request/response implemented via message bus | SCH-003 |
+| `packages/core/src/tools/enter-plan-mode.ts` | `src/py_agent_runtime/tools/enter_plan_mode.py` | done | Mode switch semantics + reason messaging covered by tests | PLN-001 |
+| `packages/core/src/tools/exit-plan-mode.ts` | `src/py_agent_runtime/tools/exit_plan_mode.py` | done | Validation + approve/reject mode transition + invalid mode handling covered by tests | PLN-002 |
 | `packages/core/src/tools/read-file.ts` | `src/py_agent_runtime/tools/read_file.py` | done | UTF-8 read + target-dir confinement checks | TOL-001 |
 | `packages/core/src/tools/write-file.ts` | `src/py_agent_runtime/tools/write_file.py` | done | UTF-8 write + parent mkdir + target-dir confinement checks | TOL-002 |
 | `packages/core/src/tools/list-directory.ts` | `src/py_agent_runtime/tools/list_directory.py` | done | Directory listing payload with metadata and path confinement | TOL-003 |
-| `packages/core/src/tools/edit.ts` / replace path | `src/py_agent_runtime/tools/replace.py` | in_progress | Text replace baseline (single/all replace modes) with confinement | TOL-004 |
+| `packages/core/src/tools/edit.ts` / replace path | `src/py_agent_runtime/tools/replace.py` | done | Text replace (single/all replace modes) with confinement and missing-target error handling | TOL-004 |
 | `packages/core/src/tools/glob.ts` | `src/py_agent_runtime/tools/glob_search.py` | done | Glob search baseline under constrained base path | TOL-005 |
 | `packages/core/src/tools/grep-search.ts` | `src/py_agent_runtime/tools/grep_search.py` | done | Grep search baseline (regex/plain, case-sensitivity, max results) | TOL-006 |
-| `packages/core/src/tools/shell.ts` / `run-shell-command` path | `src/py_agent_runtime/tools/run_shell_command.py` | in_progress | Shell execution baseline with timeout + cwd confinement + structured stdout/stderr | TOL-007 |
+| `packages/core/src/tools/shell.ts` / `run-shell-command` path | `src/py_agent_runtime/tools/run_shell_command.py` | done | Shell execution with timeout + cwd confinement + structured stdout/stderr + policy redirection safety | TOL-007 |
 | `packages/core/src/tools/write-todos.ts` | `src/py_agent_runtime/tools/write_todos.py` | done | Validated todo updates persisted into runtime state | TOL-008 |
 | `packages/core/src/tools/read-todos.ts` (conceptual parity helper) | `src/py_agent_runtime/tools/read_todos.py` | done | Read back runtime todo list state for agent continuity | TOL-009 |
-| `packages/core/src/utils/planUtils.ts` | `src/py_agent_runtime/plans/validation.py` | in_progress | Path/content checks including symlink escape tests | PLN-003 |
+| `packages/core/src/utils/planUtils.ts` | `src/py_agent_runtime/plans/validation.py` | done | Path/content checks including symlink escape tests | PLN-003 |
 | `packages/core/src/config/config.ts` (plan-relevant parts) | `src/py_agent_runtime/runtime/config.py` | done | Mode + plans_dir + approved path + interactive policy propagation + default TOML policy auto-load | RT-001 |
-| `packages/core/src/agents/local-executor.ts` | `src/py_agent_runtime/agents/local_executor.py` | in_progress | `complete_task` contract + unauthorized guard + allowed-tool filtering (anti-recursion baseline) | AGT-001 |
-| `packages/core/src/agents/registry.ts` | `src/py_agent_runtime/agents/registry.py` | in_progress | Dynamic policy registration for local/remote agents implemented | AGT-002 |
-| `packages/core/src/agents/subagent-tool-wrapper.ts` | `src/py_agent_runtime/agents/subagent_tool.py` | in_progress | Subagent tool wrapper + local invocation baseline implemented | AGT-003 |
-| `packages/core/src/agents/agent-scheduler.ts` | `src/py_agent_runtime/agents/agent_scheduler.py` | in_progress | Agent-scoped scheduling helper implemented | AGT-004 |
-| `packages/core/src/confirmation-bus/message-bus.ts` | `src/py_agent_runtime/bus/message_bus.py` | in_progress | Pub/sub + synchronous request/response + policy-aware confirmation handling | BUS-001 |
-| `packages/core/src/agents/local-executor.ts` (LLM call loop parts) | `src/py_agent_runtime/agents/llm_runner.py` | in_progress | Provider-driven tool-call loop baseline with scheduler + `complete_task` contract | AGT-005 |
-| `packages/core/src/agents/local-executor.ts` (completion contract path) | `src/py_agent_runtime/agents/completion_schema.py` | in_progress | Completion schema validation baseline for final `complete_task` output | AGT-006 |
-| `packages/core/src/core/geminiChat.ts` (provider abstraction surface) | `src/py_agent_runtime/llm/base_provider.py` | in_progress | Canonical provider interface for multi-model adapters | LLM-001 |
-| `packages/core/src/core/geminiChat.ts` (OpenAI-parity target) | `src/py_agent_runtime/llm/openai_provider.py` | in_progress | OpenAI chat-completions adapter with env key loading | LLM-002 |
-| `packages/core/src/core/geminiChat.ts` (Gemini adapter path) | `src/py_agent_runtime/llm/gemini_provider.py` | in_progress | Gemini generate-content adapter baseline with env key loading | LLM-003 |
-| `packages/core/src/core/geminiChat.ts` (Anthropic adapter path) | `src/py_agent_runtime/llm/anthropic_provider.py` | in_progress | Anthropic messages adapter baseline with env key loading | LLM-004 |
-| `packages/core/src/core/geminiChat.ts` (provider selection path) | `src/py_agent_runtime/llm/factory.py` | in_progress | Provider factory routes `openai`/`gemini`/`anthropic` | LLM-005 |
+| `packages/core/src/agents/local-executor.ts` | `src/py_agent_runtime/agents/local_executor.py` | done | `complete_task` contract + unauthorized guard + allowed-tool filtering (anti-recursion) | AGT-001 |
+| `packages/core/src/agents/registry.ts` | `src/py_agent_runtime/agents/registry.py` | done | Dynamic policy registration for local/remote agents implemented | AGT-002 |
+| `packages/core/src/agents/subagent-tool-wrapper.ts` | `src/py_agent_runtime/agents/subagent_tool.py` | done | Subagent tool wrapper + local invocation + completion schema enforcement | AGT-003 |
+| `packages/core/src/agents/agent-scheduler.ts` | `src/py_agent_runtime/agents/agent_scheduler.py` | done | Agent-scoped scheduling helper implemented | AGT-004 |
+| `packages/core/src/confirmation-bus/message-bus.ts` | `src/py_agent_runtime/bus/message_bus.py` | done | Pub/sub + synchronous request/response + policy-aware confirmation handling | BUS-001 |
+| `packages/core/src/agents/local-executor.ts` (LLM call loop parts) | `src/py_agent_runtime/agents/llm_runner.py` | done | Provider-driven tool-call loop with scheduler + `complete_task` contract + recovery turn | AGT-005 |
+| `packages/core/src/agents/local-executor.ts` (completion contract path) | `src/py_agent_runtime/agents/completion_schema.py` | done | Completion schema validation for final `complete_task` output | AGT-006 |
+| `packages/core/src/core/geminiChat.ts` (provider abstraction surface) | `src/py_agent_runtime/llm/base_provider.py` | done | Canonical provider interface for multi-model adapters | LLM-001 |
+| `packages/core/src/core/geminiChat.ts` (OpenAI-parity target) | `src/py_agent_runtime/llm/openai_provider.py` | done | OpenAI chat-completions adapter with env key loading + retry backoff knobs | LLM-002 |
+| `packages/core/src/core/geminiChat.ts` (Gemini adapter path) | `src/py_agent_runtime/llm/gemini_provider.py` | done | Gemini generate-content adapter with env key loading + retry backoff knobs | LLM-003 |
+| `packages/core/src/core/geminiChat.ts` (Anthropic adapter path) | `src/py_agent_runtime/llm/anthropic_provider.py` | done | Anthropic messages adapter with env key loading + retry backoff knobs | LLM-004 |
+| `packages/core/src/core/geminiChat.ts` (provider selection path) | `src/py_agent_runtime/llm/factory.py` | done | Provider factory routes `openai`/`gemini`/`anthropic` and forwards retry settings | LLM-005 |
 | `packages/core/src/core/geminiChat.ts` (retry/error mapping path) | `src/py_agent_runtime/llm/retry.py` | done | Transient retry helper with retryable status/error mapping + configurable exponential backoff/cap | LLM-006 |
 | `packages/cli/src/config/config.ts` (approval/non-interactive) | `src/py_agent_runtime/cli/main.py` | done | CLI supports `chat`, `run`, `mode`, `plan enter`, `plan exit`, `policies list`, `tools list` with approval-mode + non-interactive controls, provider retry backoff knobs, and `--target-dir` | CLI-001 |
-| `packages/core/src/agents/local-executor.test.ts` + scheduler/policy e2e paths | `tests/test_golden_scenarios.py` | in_progress | Golden scenarios cover plan lifecycle, missing plan, policy deny, cancellation, and non-interactive boundary | E2E-001 |
+| `packages/core/src/agents/local-executor.test.ts` + scheduler/policy e2e paths | `tests/test_golden_scenarios.py` | done | Golden scenarios cover plan lifecycle, missing plan, policy deny, cancellation, and non-interactive boundary | E2E-001 |
 
 ## Current test mapping
 
 | Test ID | Python test file | Purpose |
 |---|---|---|
 | POL-001 | `tests/test_policy_engine.py` | Plan precedence + non-interactive coercion |
-| POL-002 | `tests/test_policy_loader.py` | Tier transform + array expansion |
+| POL-002 | `tests/test_policy_loader.py` | Tier transform + array expansion + commandPrefix/commandRegex coverage |
 | POL-003 | `tests/test_policy_defaults.py` | Default policy TOMLs load and enforce mode-specific decisions (plan/autoEdit/yolo) |
-| PLN-003 | `tests/test_plan_validation.py` | Path traversal/symlink/content validation |
+| PLN-001..003 | `tests/test_plan_tools.py`, `tests/test_plan_validation.py` | Plan lifecycle mode switches, approval/rejection semantics, and path/content validation |
 | SCH-001 | `tests/test_scheduler.py` | Scheduler allow/deny baseline |
 | AGT-001 | `tests/test_local_executor.py` | `complete_task` protocol + unauthorized-tool guard + allowed-tool filtering |
 | AGT-002 | `tests/test_agent_registry.py` | Dynamic policy behavior for subagent registration |
@@ -66,11 +66,12 @@ For each TS module, track:
 | LLM-005 | `tests/test_llm_factory.py` | Provider factory routing coverage |
 | LLM-006 | `tests/test_llm_retry.py` | Retry helper behavior on transient vs non-retryable API errors |
 | BUS-001 | `tests/test_message_bus.py` | Confirmation auto allow/deny/ask-user flow + request timeout boundary |
-| CLI-001 | `tests/test_cli_main.py` | CLI command wiring for `chat`, `run`, `mode`, `plan enter`, `plan exit` |
+| CLI-001 | `tests/test_cli_main.py` | CLI command wiring for `chat`, `run`, `mode`, `plan enter/exit`, `policies list`, `tools list`, and `--target-dir` |
 | E2E-001 | `tests/test_golden_scenarios.py` | Golden scenario regression coverage for plan/policy/cancellation/non-interactive flows |
 | RT-001 | `tests/test_runtime_config.py`, `tests/test_policy_defaults.py` | Runtime interactive propagation + default policy auto-load behavior |
 | TOL-001..006 | `tests/test_fs_tools.py`, `tests/test_scheduler.py` | Filesystem tools behavior + scheduler default policy integration |
 | TOL-008..009 | `tests/test_todo_tools.py`, `tests/test_policy_defaults.py` | Todo-state persistence and default policy allowance coverage |
+| TOL-007 | `tests/test_run_shell_command_tool.py`, `tests/test_policy_engine.py` | Shell tool execution semantics + redirection safety policy behavior |
 | TOL-SCHEMA | `tests/test_tool_schemas.py` | Built-in tools expose explicit JSON Schemas to provider tool declarations |
 
 ## Deferred items

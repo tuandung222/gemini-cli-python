@@ -55,3 +55,57 @@ def test_non_interactive_converts_ask_user_to_deny() -> None:
     result = engine.check(PolicyCheckInput(name="ask_user"))
     assert result.decision == PolicyDecision.DENY
 
+
+def test_shell_redirection_downgrades_allow_to_ask_user() -> None:
+    engine = PolicyEngine(
+        rules=[
+            PolicyRule(
+                tool_name="run_shell_command",
+                decision=PolicyDecision.ALLOW,
+                priority=2.0,
+            )
+        ],
+        approval_mode=ApprovalMode.DEFAULT,
+    )
+
+    result = engine.check(
+        PolicyCheckInput(name="run_shell_command", args={"command": "echo hi > out.txt"})
+    )
+    assert result.decision == PolicyDecision.ASK_USER
+
+
+def test_shell_redirection_keeps_allow_in_auto_edit_mode() -> None:
+    engine = PolicyEngine(
+        rules=[
+            PolicyRule(
+                tool_name="run_shell_command",
+                decision=PolicyDecision.ALLOW,
+                priority=2.0,
+            )
+        ],
+        approval_mode=ApprovalMode.AUTO_EDIT,
+    )
+
+    result = engine.check(
+        PolicyCheckInput(name="run_shell_command", args={"command": "echo hi > out.txt"})
+    )
+    assert result.decision == PolicyDecision.ALLOW
+
+
+def test_shell_redirection_respects_allow_redirection_rule() -> None:
+    engine = PolicyEngine(
+        rules=[
+            PolicyRule(
+                tool_name="run_shell_command",
+                decision=PolicyDecision.ALLOW,
+                priority=2.0,
+                allow_redirection=True,
+            )
+        ],
+        approval_mode=ApprovalMode.DEFAULT,
+    )
+
+    result = engine.check(
+        PolicyCheckInput(name="run_shell_command", args={"command": "echo hi > out.txt"})
+    )
+    assert result.decision == PolicyDecision.ALLOW

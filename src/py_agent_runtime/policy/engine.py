@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any, Iterable
 
 from py_agent_runtime.policy.types import (
@@ -23,6 +24,11 @@ def _is_wildcard_pattern(name: str) -> bool:
 def _matches_wildcard(pattern: str, tool_name: str) -> bool:
     prefix = pattern[:-3]
     return tool_name.startswith(prefix + "__")
+
+
+SHELL_TOOL_NAMES = {"run_shell_command"}
+_REDIRECTION_RE = re.compile(r"(^|[^A-Za-z0-9_])(\d*[<>]{1,2})([^A-Za-z0-9_]|$)")
+_TEE_PIPE_RE = re.compile(r"\|\s*tee\b")
 
 
 class PolicyEngine:
@@ -95,11 +101,47 @@ class PolicyEngine:
             if rule.args_pattern and not rule.args_pattern.search(stringified_args):
                 continue
 
-            return CheckResult(self._apply_non_interactive(rule.decision), rule)
+            decision = self._apply_non_interactive(rule.decision)
+            decision = self._apply_shell_redirection_safety(decision, tool_call, rule)
+            return CheckResult(decision, rule)
 
-        return CheckResult(self._apply_non_interactive(self._default_decision), None)
+        default_decision = self._apply_non_interactive(self._default_decision)
+        default_decision = self._apply_shell_redirection_safety(
+            default_decision,
+            tool_call,
+            None,
+        )
+        return CheckResult(default_decision, None)
 
     def _apply_non_interactive(self, decision: PolicyDecision) -> PolicyDecision:
         if self._non_interactive and decision == PolicyDecision.ASK_USER:
             return PolicyDecision.DENY
         return decision
+
+    def _apply_shell_redirection_safety(
+        self,
+        decision: PolicyDecision,
+        tool_call: PolicyCheckInput,
+        rule: PolicyRule | None,
+    ) -> PolicyDecision:
+        if decision != PolicyDecision.ALLOW:
+            return decision
+        if tool_call.name not in SHELL_TOOL_NAMES:
+            return decision
+        if self._approval_mode in {ApprovalMode.AUTO_EDIT, ApprovalMode.YOLO}:
+            return decision
+        if rule is not None and rule.allow_redirection:
+            return decision
+
+        args = tool_call.args or {}
+        command = args.get("command")
+        if not isinstance(command, str):
+            return decision
+
+        if _has_redirection(command):
+            return self._apply_non_interactive(PolicyDecision.ASK_USER)
+        return decision
+
+
+def _has_redirection(command: str) -> bool:
+    return _REDIRECTION_RE.search(command) is not None or _TEE_PIPE_RE.search(command) is not None
