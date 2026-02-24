@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from py_agent_runtime.bus.message_bus import MessageBus
 from py_agent_runtime.policy.defaults_loader import load_default_policies
@@ -27,6 +27,7 @@ class RuntimeConfig:
     message_bus: MessageBus = field(init=False)
     agent_registry: AgentRegistry = field(init=False)
     plans_dir: Path = field(init=False)
+    todos: list[dict[str, Any]] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         self.target_dir = self.target_dir.resolve()

@@ -89,6 +89,9 @@ This document summarizes built-in tools currently registered by the CLI runtime.
     - `description` (string)
     - `status` (`pending` | `in_progress` | `completed` | `cancelled`)
 
+### `read_todos`
+- Purpose: read current in-memory todo list maintained by runtime config.
+
 ## Runtime CLI commands
 
 - `chat`

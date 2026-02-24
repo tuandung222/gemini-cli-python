@@ -40,6 +40,7 @@ class WriteTodosTool(BaseTool):
             return ToolResult(llm_content=validation_error, return_display="Error", error=validation_error)
 
         todos = params.get("todos", [])
+        config.todos = [dict(todo) for todo in todos if isinstance(todo, dict)]
         if not todos:
             text = "Successfully cleared the todo list."
             return ToolResult(llm_content=text, return_display={"todos": []})

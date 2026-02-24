@@ -1,5 +1,4 @@
 [[rule]]
-toolName = ["glob", "grep_search", "list_directory", "read_file"]
+toolName = ["glob", "grep_search", "list_directory", "read_file", "read_todos", "write_todos"]
 decision = "allow"
 priority = 50
-

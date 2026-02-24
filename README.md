@@ -21,6 +21,7 @@ Authentication-specific features can be simplified or omitted.
 - [x] Scheduler confirmation + policy-update loop (`scheduler/*`, `bus/message_bus.py`)
 - [x] Runtime auto-load of default policy TOMLs (`policy/defaults_loader.py`, `runtime/config.py`)
 - [x] Core filesystem tools parity baseline (`glob`, `grep_search`, `list_directory`, `read_file`, `write_file`, `replace`, `run_shell_command`)
+- [x] Runtime todo-state tools (`write_todos` + `read_todos`) with default allow policies
 - [x] Built-in tool reference documentation (`docs/TOOL_REFERENCE.md`)
 - [x] Agent registry dynamic policy baseline (`agents/registry.py`)
 - [x] Subagent wrapper + invocation baseline with scheduler integration (`agents/subagent_tool.py`, `agents/agent_scheduler.py`)
@@ -36,7 +37,7 @@ Authentication-specific features can be simplified or omitted.
 
 ## Progress snapshot
 
-- `pytest`: `127 passed`
+- `pytest`: `129 passed`
 - `ruff check src tests`: pass
 - `mypy src/py_agent_runtime`: pass
 

@@ -16,6 +16,7 @@ from py_agent_runtime.tools.enter_plan_mode import EnterPlanModeTool
 from py_agent_runtime.tools.exit_plan_mode import ExitPlanModeTool
 from py_agent_runtime.tools.list_directory import ListDirectoryTool
 from py_agent_runtime.tools.read_file import ReadFileTool
+from py_agent_runtime.tools.read_todos import ReadTodosTool
 from py_agent_runtime.tools.replace import ReplaceTool
 from py_agent_runtime.tools.run_shell_command import RunShellCommandTool
 from py_agent_runtime.tools.write_file import WriteFileTool
@@ -28,6 +29,7 @@ def _register_default_tools(config: RuntimeConfig) -> None:
     config.tool_registry.register_tool(GrepSearchTool())
     config.tool_registry.register_tool(ListDirectoryTool())
     config.tool_registry.register_tool(ReadFileTool())
+    config.tool_registry.register_tool(ReadTodosTool())
     config.tool_registry.register_tool(ReplaceTool())
     config.tool_registry.register_tool(RunShellCommandTool())
     config.tool_registry.register_tool(WriteFileTool())
