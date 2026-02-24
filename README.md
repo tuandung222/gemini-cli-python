@@ -22,6 +22,18 @@ Authentication-specific features can be simplified or omitted.
 - [x] Agent registry dynamic policy baseline (`agents/registry.py`)
 - [x] Baseline tests/lint/type-check passing (`pytest`, `ruff`, `mypy`)
 
+## Progress snapshot
+
+- `pytest`: `28 passed`
+- `ruff check src tests`: pass
+- `mypy src/py_agent_runtime`: pass
+
+Phase-level status (from `docs/PORTING_PLAN.md`):
+- Phase 0-1: mostly complete (scope freeze + skeleton/types)
+- Phase 2-4: core baseline implemented (policy/scheduler/plan tools), parity hardening still in progress
+- Phase 5: started (local executor protocol + anti-recursion baseline + dynamic subagent policy), full subagent invocation flow still pending
+- Phase 6-8: not started (provider adapters, CLI parity, end-to-end hardening)
+
 ## Local setup
 
 ```bash
@@ -45,3 +57,8 @@ Implement Phase 5 expansion:
 - subagent tool wrapper + invocation flow,
 - isolated tool surface for subagents with anti-recursion filtering,
 - end-to-end local agent loop integration with scheduler.
+
+## Scope notes
+
+- This port prioritizes orchestration equivalence first.
+- Auth/provider-specific integrations are intentionally deferred in MVP.
