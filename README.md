@@ -1,5 +1,11 @@
 # gemini-cli-python
 
+![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-141%20passed-brightgreen)
+![Ruff](https://img.shields.io/badge/ruff-all%20checks%20passed-success)
+![Mypy](https://img.shields.io/badge/mypy-no%20issues%20found-success)
+![Status](https://img.shields.io/badge/status-MVP%20parity%20complete-1f6feb)
+
 Python reimplementation of `gemini-cli` agent runtime with equivalent orchestration logic:
 - agent loop
 - tool scheduling + confirmation flow
@@ -8,6 +14,16 @@ Python reimplementation of `gemini-cli` agent runtime with equivalent orchestrat
 - subagent protocol (`complete_task`)
 
 Authentication-specific features can be simplified or omitted.
+
+## Development workflow
+
+Build and validation follow a parity-first, TDD-oriented process:
+
+1. Select parity target from `docs/PORTING_PLAN.md` and `docs/EQUIVALENCE_MATRIX.md`.
+2. Write or extend tests first (unit/golden/e2e boundary) for expected TS-equivalent behavior.
+3. Implement the minimal runtime/tool/policy change in `src/py_agent_runtime/`.
+4. Run quality gates: `pytest`, `ruff check src tests`, `mypy src/py_agent_runtime`.
+5. Update equivalence/docs status only after all gates are green.
 
 ## Current status
 
@@ -38,6 +54,7 @@ Authentication-specific features can be simplified or omitted.
 
 ## Progress snapshot
 
+- Last validated: `2026-02-24`
 - `pytest`: `141 passed`
 - `ruff check src tests`: pass
 - `mypy src/py_agent_runtime`: pass
