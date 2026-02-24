@@ -6,6 +6,7 @@ from typing import Any
 from uuid import uuid4
 
 from py_agent_runtime.agents.agent_scheduler import schedule_agent_tools
+from py_agent_runtime.agents.completion_schema import validate_completion_output
 from py_agent_runtime.agents.local_executor import (
     FunctionCall,
     LocalAgentExecutor,
@@ -37,6 +38,7 @@ class LLMAgentRunner:
         model: str | None = None,
         temperature: float | None = None,
         enable_recovery_turn: bool = True,
+        completion_schema: dict[str, Any] | None = None,
     ) -> None:
         self._config = config
         self._provider = provider
@@ -45,6 +47,7 @@ class LLMAgentRunner:
         self._model = model
         self._temperature = temperature
         self._enable_recovery_turn = enable_recovery_turn
+        self._completion_schema = completion_schema
 
     def run(self, user_prompt: str, system_prompt: str | None = None) -> AgentRunResult:
         messages: list[LLMMessage] = []
@@ -139,9 +142,19 @@ class LLMAgentRunner:
                         )
 
             if processed.task_completed:
+                final_result = processed.submitted_output or ""
+                completion_error = self._validate_completion_result(final_result)
+                if completion_error is not None:
+                    return self._failure_with_optional_recovery(
+                        messages=messages,
+                        tool_schemas=tool_schemas,
+                        turn=turn,
+                        fallback_error=completion_error,
+                        reason="completion_schema_violation",
+                    )
                 return AgentRunResult(
                     success=True,
-                    result=processed.submitted_output or "",
+                    result=final_result,
                     error=None,
                     turns=turn,
                 )
@@ -262,9 +275,18 @@ class LLMAgentRunner:
         )
         if not processed.task_completed:
             return None
+        final_result = processed.submitted_output or ""
+        completion_error = self._validate_completion_result(final_result)
+        if completion_error is not None:
+            return None
         return AgentRunResult(
             success=True,
-            result=processed.submitted_output or "",
+            result=final_result,
             error=None,
             turns=turn,
         )
+
+    def _validate_completion_result(self, result: str) -> str | None:
+        if self._completion_schema is None:
+            return None
+        return validate_completion_output(result, self._completion_schema)

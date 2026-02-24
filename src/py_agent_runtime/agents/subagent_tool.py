@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Mapping
 
 from py_agent_runtime.agents.agent_scheduler import schedule_agent_tools
+from py_agent_runtime.agents.completion_schema import validate_completion_output
 from py_agent_runtime.agents.local_executor import (
     FunctionCall,
     LocalAgentExecutor,
@@ -111,6 +112,17 @@ class SubagentTool(BaseTool):
 
             if processed.task_completed:
                 result = processed.submitted_output or ""
+                if self._definition.completion_schema is not None:
+                    schema_error = validate_completion_output(
+                        result,
+                        self._definition.completion_schema,
+                    )
+                    if schema_error is not None:
+                        return ToolResult(
+                            llm_content=schema_error,
+                            return_display="Subagent completion schema violation",
+                            error=schema_error,
+                        )
                 return ToolResult(
                     llm_content=(
                         f"Subagent '{self._definition.name}' finished successfully with result: {result}"
@@ -164,4 +176,3 @@ class SubagentTool(BaseTool):
                 continue
             function_calls.append(FunctionCall(name=name, args=args))
         return function_calls
-

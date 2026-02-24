@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -172,3 +173,70 @@ def test_llm_runner_can_disable_recovery_turn() -> None:
     assert result.success is False
     assert result.error is not None
     assert "exceeded max turns" in result.error
+
+
+def test_llm_runner_enforces_completion_schema_success() -> None:
+    config = RuntimeConfig(target_dir=Path("."), interactive=True)
+    provider = FakeProvider(
+        responses=[
+            LLMTurnResponse(
+                content=None,
+                tool_calls=[
+                    LLMToolCall(
+                        name="complete_task",
+                        args={"result": {"summary": "ok", "score": 1}},
+                    )
+                ],
+            )
+        ]
+    )
+    runner = LLMAgentRunner(
+        config=config,
+        provider=provider,
+        completion_schema={
+            "type": "object",
+            "required": ["summary", "score"],
+            "properties": {
+                "summary": {"type": "string"},
+                "score": {"type": "integer"},
+            },
+            "additionalProperties": False,
+        },
+    )
+    result = runner.run("do task")
+
+    assert result.success is True
+    assert result.result is not None
+    assert json.loads(result.result) == {"summary": "ok", "score": 1}
+
+
+def test_llm_runner_enforces_completion_schema_failure() -> None:
+    config = RuntimeConfig(target_dir=Path("."), interactive=True)
+    provider = FakeProvider(
+        responses=[
+            LLMTurnResponse(
+                content=None,
+                tool_calls=[
+                    LLMToolCall(
+                        name="complete_task",
+                        args={"result": "plain text"},
+                    )
+                ],
+            )
+        ]
+    )
+    runner = LLMAgentRunner(
+        config=config,
+        provider=provider,
+        enable_recovery_turn=False,
+        completion_schema={
+            "type": "object",
+            "required": ["summary"],
+            "properties": {"summary": {"type": "string"}},
+        },
+    )
+    result = runner.run("do task")
+
+    assert result.success is False
+    assert result.error is not None
+    assert "Completion output does not satisfy schema" in result.error

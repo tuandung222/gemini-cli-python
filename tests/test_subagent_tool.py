@@ -162,3 +162,38 @@ def test_subagent_tool_requires_complete_task() -> None:
     assert result.response.error_type == "execution_failed"
     assert "stopped without calling 'complete_task'" in str(result.response.error)
 
+
+def test_subagent_tool_enforces_completion_schema() -> None:
+    config = RuntimeConfig(target_dir=Path("."), interactive=True)
+    config.tool_registry.register_tool(EchoTool())
+    _allow_tool(config, "echo")
+
+    definition = AgentDefinition(
+        kind=AgentKind.LOCAL,
+        name="research_agent",
+        description="Research assistant",
+        tool_names=("echo",),
+        completion_schema={
+            "type": "object",
+            "required": ["summary"],
+            "properties": {"summary": {"type": "string"}},
+        },
+    )
+    assert config.get_agent_registry().register_agent(definition) is True
+    subagent_tool = SubagentToolWrapper(definition).build()
+    config.tool_registry.register_tool(subagent_tool)
+
+    scheduler = Scheduler(config)
+    call = ToolCallRequestInfo(
+        name="research_agent",
+        args={
+            "turns": [
+                [{"name": "complete_task", "args": {"result": "plain result"}}],
+            ]
+        },
+    )
+    result = scheduler.schedule([call])[0]
+
+    assert result.status == CoreToolCallStatus.ERROR
+    assert result.response.error_type == "execution_failed"
+    assert "Completion output does not satisfy schema" in str(result.response.error)

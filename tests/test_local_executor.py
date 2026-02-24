@@ -5,6 +5,7 @@ from py_agent_runtime.agents.local_executor import (
     TASK_COMPLETE_TOOL_NAME,
     create_unauthorized_tool_error,
 )
+import json
 
 
 def test_complete_task_required() -> None:
@@ -76,3 +77,17 @@ def test_process_function_calls_can_skip_complete_task_requirement() -> None:
     assert result.task_completed is False
     assert result.terminate_reason is None
     assert result.errors == []
+
+
+def test_complete_task_serializes_structured_result_as_json() -> None:
+    result = LocalAgentExecutor.process_function_calls(
+        [
+            FunctionCall(
+                name=TASK_COMPLETE_TOOL_NAME,
+                args={"result": {"summary": "done", "score": 1}},
+            )
+        ]
+    )
+    assert result.task_completed is True
+    assert result.submitted_output is not None
+    assert json.loads(result.submitted_output) == {"summary": "done", "score": 1}

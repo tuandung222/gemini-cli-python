@@ -26,12 +26,14 @@ For each TS module, track:
 | `packages/core/src/agents/agent-scheduler.ts` | `src/py_agent_runtime/agents/agent_scheduler.py` | in_progress | Agent-scoped scheduling helper implemented | AGT-004 |
 | `packages/core/src/confirmation-bus/message-bus.ts` | `src/py_agent_runtime/bus/message_bus.py` | in_progress | Pub/sub + synchronous request/response + policy-aware confirmation handling | BUS-001 |
 | `packages/core/src/agents/local-executor.ts` (LLM call loop parts) | `src/py_agent_runtime/agents/llm_runner.py` | in_progress | Provider-driven tool-call loop baseline with scheduler + `complete_task` contract | AGT-005 |
+| `packages/core/src/agents/local-executor.ts` (completion contract path) | `src/py_agent_runtime/agents/completion_schema.py` | in_progress | Completion schema validation baseline for final `complete_task` output | AGT-006 |
 | `packages/core/src/core/geminiChat.ts` (provider abstraction surface) | `src/py_agent_runtime/llm/base_provider.py` | in_progress | Canonical provider interface for multi-model adapters | LLM-001 |
 | `packages/core/src/core/geminiChat.ts` (OpenAI-parity target) | `src/py_agent_runtime/llm/openai_provider.py` | in_progress | OpenAI chat-completions adapter with env key loading | LLM-002 |
 | `packages/core/src/core/geminiChat.ts` (Gemini adapter path) | `src/py_agent_runtime/llm/gemini_provider.py` | in_progress | Gemini generate-content adapter baseline with env key loading | LLM-003 |
 | `packages/core/src/core/geminiChat.ts` (Anthropic adapter path) | `src/py_agent_runtime/llm/anthropic_provider.py` | in_progress | Anthropic messages adapter baseline with env key loading | LLM-004 |
 | `packages/core/src/core/geminiChat.ts` (provider selection path) | `src/py_agent_runtime/llm/factory.py` | in_progress | Provider factory routes `openai`/`gemini`/`anthropic` | LLM-005 |
 | `packages/cli/src/config/config.ts` (approval/non-interactive) | `src/py_agent_runtime/cli/main.py` | in_progress | CLI run command wires approval mode + non-interactive config baseline | CLI-001 |
+| `packages/core/src/agents/local-executor.test.ts` + scheduler/policy e2e paths | `tests/test_golden_scenarios.py` | in_progress | Golden scenario baseline (plan lifecycle, missing plan, policy deny) | E2E-001 |
 
 ## Current test mapping
 
@@ -45,12 +47,14 @@ For each TS module, track:
 | AGT-002 | `tests/test_agent_registry.py` | Dynamic policy behavior for subagent registration |
 | AGT-003 | `tests/test_subagent_tool.py` | Subagent invocation, anti-recursion, allowlist, and completion protocol |
 | AGT-005 | `tests/test_llm_runner.py` | Provider-driven agent loop with scheduler and complete_task termination |
+| AGT-006 | `tests/test_completion_schema.py` | Completion schema validation and error messaging |
 | LLM-001 | `tests/test_llm_normalizer.py` | Canonical message/tool-call normalization for OpenAI payloads |
 | LLM-002 | `tests/test_openai_provider.py` | OpenAI adapter env key handling and request serialization |
 | LLM-003 | `tests/test_gemini_provider.py` | Gemini adapter env key handling and request/response mapping |
 | LLM-004 | `tests/test_anthropic_provider.py` | Anthropic adapter env key handling and request/response mapping |
 | LLM-005 | `tests/test_llm_factory.py` | Provider factory routing coverage |
 | CLI-001 | `tests/test_cli_main.py` | CLI command wiring for chat/run and non-interactive approval mode |
+| E2E-001 | `tests/test_golden_scenarios.py` | Golden scenario regression coverage for plan/policy flows |
 
 ## Deferred items
 

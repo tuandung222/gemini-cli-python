@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Mapping, AbstractSet
@@ -88,7 +89,11 @@ class LocalAgentExecutor:
                 )
                 continue
 
-            submitted_output = str(result)
+            submitted_output = (
+                result
+                if isinstance(result, str)
+                else json.dumps(result, ensure_ascii=False, sort_keys=True)
+            )
             task_completed = True
 
         if task_completed:

@@ -24,11 +24,13 @@ Authentication-specific features can be simplified or omitted.
 - [x] LLM provider core contracts + OpenAI adapter baseline (`llm/base_provider.py`, `llm/openai_provider.py`, `agents/llm_runner.py`)
 - [x] Provider factory baseline (`llm/factory.py`) with OpenAI/Gemini/Anthropic adapters wired
 - [x] CLI run wiring baseline (`cli/main.py`) for provider selection + approval mode + non-interactive
+- [x] Completion schema enforcement baseline for `complete_task` (`agents/completion_schema.py`, `agents/llm_runner.py`, `agents/subagent_tool.py`)
+- [x] Golden scenario baseline tests for plan/deny/protocol flows (`tests/test_golden_scenarios.py`)
 - [x] Baseline tests/lint/type-check passing (`pytest`, `ruff`, `mypy`)
 
 ## Progress snapshot
 
-- `pytest`: `56 passed`
+- `pytest`: `66 passed`
 - `ruff check src tests`: pass
 - `mypy src/py_agent_runtime`: pass
 
@@ -38,7 +40,7 @@ Phase-level status (from `docs/PORTING_PLAN.md`):
 - Phase 5: in progress (local executor protocol + anti-recursion + dynamic subagent policy + subagent wrapper/invocation baseline + recovery turn)
 - Phase 6: in progress (provider interface + OpenAI/Gemini/Anthropic adapter baselines + factory)
 - Phase 7: in progress (CLI chat/run + approval mode + non-interactive wiring baseline)
-- Phase 8: pending (parity hardening/e2e suite expansion)
+- Phase 8: in progress (golden/e2e baseline scenarios added; hardening still ongoing)
 
 ## Local setup
 
@@ -101,9 +103,9 @@ cd /Users/admin/TuanDung/repos/gemini-cli-python
 ## Next implementation target
 
 Implement next parity milestones:
-- harden Phase 5 with stronger completion schema enforcement and richer recovery tests,
-- implement real Gemini/Anthropic adapters (factory currently has OpenAI fully implemented; others are stubs),
-- expand Phase 8 golden/e2e scenarios for denial/cancellation/planning paths.
+- harden completion schema validation with richer JSON Schema coverage and typed output handling,
+- strengthen provider parity for advanced tool-call edge cases and retry/backoff paths,
+- expand Phase 8 golden/e2e scenarios for cancellation/non-interactive/recovery boundary conditions.
 
 ## Scope notes
 
