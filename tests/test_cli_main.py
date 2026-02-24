@@ -254,3 +254,28 @@ def test_cli_run_command_forwards_retry_settings_to_provider(monkeypatch, capsys
     assert captured["max_retries"] == 4
     assert captured["retry_base_delay_seconds"] == 0.2
     assert captured["retry_max_delay_seconds"] == 1.1
+
+
+def test_cli_policies_list_command_outputs_grouped_policies(monkeypatch, capsys) -> None:  # noqa: ANN001
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "py-agent-runtime",
+            "policies",
+            "list",
+        ],
+    )
+    code = cli_main.main()
+    captured = capsys.readouterr()
+    assert code == 0
+
+    payload = json.loads(captured.out)
+    assert payload["success"] is True
+    assert "default" in payload["policies"]
+    assert "autoEdit" in payload["policies"]
+    assert "yolo" in payload["policies"]
+    assert "plan" in payload["policies"]
+
+    default_rules = payload["policies"]["default"]
+    assert any(rule.get("tool_name") == "read_file" and rule.get("decision") == "allow" for rule in default_rules)

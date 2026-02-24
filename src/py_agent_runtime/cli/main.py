@@ -19,6 +19,7 @@ from py_agent_runtime.tools.read_file import ReadFileTool
 from py_agent_runtime.tools.replace import ReplaceTool
 from py_agent_runtime.tools.write_file import WriteFileTool
 from py_agent_runtime.tools.write_todos import WriteTodosTool
+from py_agent_runtime.policy.types import PolicyRule
 
 
 def _register_default_tools(config: RuntimeConfig) -> None:
@@ -111,6 +112,56 @@ def _mode_command(args: argparse.Namespace) -> int:
         }
     )
     return 0
+
+
+def _serialize_policy_rule(rule: PolicyRule) -> dict[str, Any]:
+    return {
+        "tool_name": rule.tool_name,
+        "decision": rule.decision.value,
+        "priority": rule.priority,
+        "source": rule.source,
+        "modes": [mode.value for mode in rule.modes] if rule.modes else [],
+        "args_pattern": rule.args_pattern.pattern if rule.args_pattern else None,
+    }
+
+
+def _policies_list_command(args: argparse.Namespace) -> int:
+    config = RuntimeConfig(
+        target_dir=Path.cwd(),
+        interactive=not args.non_interactive,
+        plan_enabled=args.plan_enabled,
+        approval_mode=ApprovalMode(args.approval_mode),
+    )
+    grouped: dict[str, list[dict[str, Any]]] = {
+        "default": [],
+        "autoEdit": [],
+        "yolo": [],
+        "plan": [],
+    }
+    for rule in config.policy_engine.get_rules():
+        serialized = _serialize_policy_rule(rule)
+        if not rule.modes:
+            grouped["default"].append(serialized)
+            continue
+        for mode in rule.modes:
+            grouped.setdefault(mode.value, []).append(serialized)
+
+    _print_json_payload(
+        {
+            "success": True,
+            "approval_mode": config.get_approval_mode().value,
+            "interactive": config.interactive,
+            "policies": grouped,
+        }
+    )
+    return 0
+
+
+def _policies_command(args: argparse.Namespace) -> int:
+    if args.policies_command == "list":
+        return _policies_list_command(args)
+    print("Error: missing policies subcommand. Use `policies list`.")
+    return 1
 
 
 def _plan_enter_command(args: argparse.Namespace) -> int:
@@ -336,6 +387,25 @@ def main() -> int:
         action="store_true",
         help="Disable interactive confirmations for this command context.",
     )
+    policies_parser = subparsers.add_parser("policies", help="Inspect active policy rules.")
+    policies_subparsers = policies_parser.add_subparsers(dest="policies_command")
+    policies_list_parser = policies_subparsers.add_parser("list", help="List active policy rules.")
+    policies_list_parser.add_argument(
+        "--approval-mode",
+        default=ApprovalMode.DEFAULT.value,
+        choices=[mode.value for mode in ApprovalMode],
+        help="Approval mode policy for evaluating mode-specific rules.",
+    )
+    policies_list_parser.add_argument(
+        "--non-interactive",
+        action="store_true",
+        help="Evaluate policy engine in non-interactive mode.",
+    )
+    policies_list_parser.add_argument(
+        "--plan-enabled",
+        action="store_true",
+        help="Enable Plan Mode directory scaffolding.",
+    )
 
     args = parser.parse_args()
     try:
@@ -347,6 +417,8 @@ def main() -> int:
             return _mode_command(args)
         if args.command == "plan":
             return _plan_command(args)
+        if args.command == "policies":
+            return _policies_command(args)
     except Exception as exc:
         print(f"Error: {exc}")
         return 2
