@@ -49,7 +49,7 @@ For each TS module, track:
 | AGT-003 | `tests/test_subagent_tool.py` | Subagent invocation, anti-recursion, allowlist, and completion protocol |
 | AGT-005 | `tests/test_llm_runner.py` | Provider-driven agent loop with scheduler and complete_task termination |
 | AGT-006 | `tests/test_completion_schema.py` | Completion schema validation and error messaging |
-| LLM-001 | `tests/test_llm_normalizer.py` | Canonical message/tool-call normalization for OpenAI payloads |
+| LLM-001 | `tests/test_llm_normalizer.py` | Canonical message/tool-call normalization for OpenAI/Gemini/Anthropic payloads |
 | LLM-002 | `tests/test_openai_provider.py` | OpenAI adapter env key handling and request serialization |
 | LLM-003 | `tests/test_gemini_provider.py` | Gemini adapter env key handling and request/response mapping |
 | LLM-004 | `tests/test_anthropic_provider.py` | Anthropic adapter env key handling and request/response mapping |
