@@ -11,6 +11,17 @@ from py_agent_runtime.tools.base import BaseTool, ToolResult
 class ExitPlanModeTool(BaseTool):
     name = "exit_plan_mode"
     description = "Request plan approval and exit Plan Mode."
+    parameters_json_schema = {
+        "type": "object",
+        "properties": {
+            "plan_path": {"type": "string"},
+            "approved": {"type": "boolean", "default": True},
+            "approval_mode": {"type": "string", "enum": ["default", "autoEdit"]},
+            "feedback": {"type": "string"},
+        },
+        "required": ["plan_path"],
+        "additionalProperties": False,
+    }
 
     def validate_params(self, params: Mapping[str, Any]) -> str | None:
         plan_path = params.get("plan_path")

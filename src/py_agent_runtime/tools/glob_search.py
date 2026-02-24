@@ -10,6 +10,15 @@ from py_agent_runtime.tools.path_utils import resolve_path_under_target
 class GlobSearchTool(BaseTool):
     name = "glob"
     description = "Find files with a glob pattern under the target directory."
+    parameters_json_schema = {
+        "type": "object",
+        "properties": {
+            "pattern": {"type": "string"},
+            "path": {"type": "string", "default": "."},
+        },
+        "required": ["pattern"],
+        "additionalProperties": False,
+    }
 
     def validate_params(self, params: Mapping[str, Any]) -> str | None:
         pattern = params.get("pattern")

@@ -25,6 +25,7 @@ class ToolResult:
 class BaseTool(ABC):
     name: str
     description: str
+    parameters_json_schema: dict[str, Any] | None = None
 
     def validate_params(self, params: Mapping[str, Any]) -> str | None:
         return None
@@ -32,4 +33,3 @@ class BaseTool(ABC):
     @abstractmethod
     def execute(self, config: RuntimeConfig, params: Mapping[str, Any]) -> ToolResult:
         raise NotImplementedError
-

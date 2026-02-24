@@ -11,6 +11,28 @@ TODO_STATUSES = {"pending", "in_progress", "completed", "cancelled"}
 class WriteTodosTool(BaseTool):
     name = "write_todos"
     description = "Overwrite the full todo list with validated statuses."
+    parameters_json_schema = {
+        "type": "object",
+        "properties": {
+            "todos": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "description": {"type": "string"},
+                        "status": {
+                            "type": "string",
+                            "enum": ["pending", "in_progress", "completed", "cancelled"],
+                        },
+                    },
+                    "required": ["description", "status"],
+                    "additionalProperties": False,
+                },
+            }
+        },
+        "required": ["todos"],
+        "additionalProperties": False,
+    }
 
     def validate_params(self, params: Mapping[str, Any]) -> str | None:
         todos = params.get("todos")

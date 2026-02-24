@@ -71,6 +71,7 @@ For each TS module, track:
 | RT-001 | `tests/test_runtime_config.py`, `tests/test_policy_defaults.py` | Runtime interactive propagation + default policy auto-load behavior |
 | TOL-001..006 | `tests/test_fs_tools.py`, `tests/test_scheduler.py` | Filesystem tools behavior + scheduler default policy integration |
 | TOL-008..009 | `tests/test_todo_tools.py`, `tests/test_policy_defaults.py` | Todo-state persistence and default policy allowance coverage |
+| TOL-SCHEMA | `tests/test_tool_schemas.py` | Built-in tools expose explicit JSON Schemas to provider tool declarations |
 
 ## Deferred items
 

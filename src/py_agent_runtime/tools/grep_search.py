@@ -11,6 +11,19 @@ from py_agent_runtime.tools.path_utils import resolve_path_under_target
 class GrepSearchTool(BaseTool):
     name = "grep_search"
     description = "Search text in files under the target directory."
+    parameters_json_schema = {
+        "type": "object",
+        "properties": {
+            "query": {"type": "string"},
+            "path": {"type": "string", "default": "."},
+            "file_pattern": {"type": "string", "default": "**/*"},
+            "max_results": {"type": "integer", "minimum": 1, "default": 100},
+            "case_sensitive": {"type": "boolean", "default": False},
+            "use_regex": {"type": "boolean", "default": False},
+        },
+        "required": ["query"],
+        "additionalProperties": False,
+    }
 
     def validate_params(self, params: Mapping[str, Any]) -> str | None:
         query = params.get("query")

@@ -10,6 +10,14 @@ from py_agent_runtime.tools.path_utils import resolve_path_under_target
 class ListDirectoryTool(BaseTool):
     name = "list_directory"
     description = "List files and folders for a path under the target directory."
+    parameters_json_schema = {
+        "type": "object",
+        "properties": {
+            "path": {"type": "string", "default": "."},
+        },
+        "required": [],
+        "additionalProperties": False,
+    }
 
     def validate_params(self, params: Mapping[str, Any]) -> str | None:
         path = params.get("path", ".")

@@ -10,6 +10,17 @@ from py_agent_runtime.tools.path_utils import resolve_path_under_target
 class ReplaceTool(BaseTool):
     name = "replace"
     description = "Replace text in a UTF-8 file under the target directory."
+    parameters_json_schema = {
+        "type": "object",
+        "properties": {
+            "file_path": {"type": "string"},
+            "old_text": {"type": "string"},
+            "new_text": {"type": "string"},
+            "replace_all": {"type": "boolean", "default": True},
+        },
+        "required": ["file_path", "old_text", "new_text"],
+        "additionalProperties": False,
+    }
 
     def validate_params(self, params: Mapping[str, Any]) -> str | None:
         file_path = params.get("file_path")

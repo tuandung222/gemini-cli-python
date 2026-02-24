@@ -9,6 +9,12 @@ from py_agent_runtime.tools.base import BaseTool, ToolResult
 class ReadTodosTool(BaseTool):
     name = "read_todos"
     description = "Read current runtime todo list state."
+    parameters_json_schema = {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": False,
+    }
 
     def validate_params(self, params: Mapping[str, Any]) -> str | None:
         return None

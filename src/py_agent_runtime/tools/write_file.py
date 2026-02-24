@@ -10,6 +10,15 @@ from py_agent_runtime.tools.path_utils import resolve_path_under_target
 class WriteFileTool(BaseTool):
     name = "write_file"
     description = "Write UTF-8 content to a file under the target directory."
+    parameters_json_schema = {
+        "type": "object",
+        "properties": {
+            "file_path": {"type": "string", "description": "Relative path to file."},
+            "content": {"type": "string", "description": "Full UTF-8 content."},
+        },
+        "required": ["file_path", "content"],
+        "additionalProperties": False,
+    }
 
     def validate_params(self, params: Mapping[str, Any]) -> str | None:
         file_path = params.get("file_path")

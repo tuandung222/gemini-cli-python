@@ -10,6 +10,14 @@ from py_agent_runtime.tools.path_utils import resolve_path_under_target
 class ReadFileTool(BaseTool):
     name = "read_file"
     description = "Read UTF-8 file content under the target directory."
+    parameters_json_schema = {
+        "type": "object",
+        "properties": {
+            "file_path": {"type": "string", "description": "Relative path to file."},
+        },
+        "required": ["file_path"],
+        "additionalProperties": False,
+    }
 
     def validate_params(self, params: Mapping[str, Any]) -> str | None:
         file_path = params.get("file_path")

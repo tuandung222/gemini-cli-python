@@ -11,6 +11,16 @@ from py_agent_runtime.tools.path_utils import resolve_path_under_target
 class RunShellCommandTool(BaseTool):
     name = "run_shell_command"
     description = "Run a shell command in a constrained working directory."
+    parameters_json_schema = {
+        "type": "object",
+        "properties": {
+            "command": {"type": "string"},
+            "cwd": {"type": "string", "default": "."},
+            "timeout_seconds": {"type": "integer", "minimum": 1, "default": 120},
+        },
+        "required": ["command"],
+        "additionalProperties": False,
+    }
 
     def validate_params(self, params: Mapping[str, Any]) -> str | None:
         command = params.get("command")
