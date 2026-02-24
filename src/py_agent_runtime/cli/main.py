@@ -65,8 +65,9 @@ def _run_command(args: argparse.Namespace) -> int:
         retry_base_delay_seconds=args.retry_base_delay_seconds,
         retry_max_delay_seconds=args.retry_max_delay_seconds,
     )
+    target_dir = Path(args.target_dir).resolve() if args.target_dir else Path.cwd().resolve()
     config = RuntimeConfig(
-        target_dir=Path.cwd(),
+        target_dir=target_dir,
         interactive=not args.non_interactive,
         plan_enabled=args.plan_enabled,
         approval_mode=ApprovalMode(args.approval_mode),
@@ -98,8 +99,9 @@ def _run_command(args: argparse.Namespace) -> int:
 
 
 def _mode_command(args: argparse.Namespace) -> int:
+    target_dir = Path(args.target_dir).resolve() if args.target_dir else Path.cwd().resolve()
     config = RuntimeConfig(
-        target_dir=Path.cwd(),
+        target_dir=target_dir,
         interactive=not args.non_interactive,
         plan_enabled=args.plan_enabled,
         approval_mode=ApprovalMode(args.approval_mode),
@@ -128,8 +130,9 @@ def _serialize_policy_rule(rule: PolicyRule) -> dict[str, Any]:
 
 
 def _policies_list_command(args: argparse.Namespace) -> int:
+    target_dir = Path(args.target_dir).resolve() if args.target_dir else Path.cwd().resolve()
     config = RuntimeConfig(
-        target_dir=Path.cwd(),
+        target_dir=target_dir,
         interactive=not args.non_interactive,
         plan_enabled=args.plan_enabled,
         approval_mode=ApprovalMode(args.approval_mode),
@@ -167,8 +170,9 @@ def _policies_command(args: argparse.Namespace) -> int:
 
 
 def _plan_enter_command(args: argparse.Namespace) -> int:
+    target_dir = Path(args.target_dir).resolve() if args.target_dir else Path.cwd().resolve()
     config = RuntimeConfig(
-        target_dir=Path.cwd(),
+        target_dir=target_dir,
         interactive=not args.non_interactive,
         plan_enabled=True,
         approval_mode=ApprovalMode.DEFAULT,
@@ -192,8 +196,9 @@ def _plan_enter_command(args: argparse.Namespace) -> int:
 
 
 def _plan_exit_command(args: argparse.Namespace) -> int:
+    target_dir = Path(args.target_dir).resolve() if args.target_dir else Path.cwd().resolve()
     config = RuntimeConfig(
-        target_dir=Path.cwd(),
+        target_dir=target_dir,
         interactive=not args.non_interactive,
         plan_enabled=True,
         approval_mode=ApprovalMode.PLAN,
@@ -273,6 +278,11 @@ def main() -> int:
         help="Run the provider-driven agent loop with scheduler and tools.",
     )
     run_parser.add_argument("--prompt", required=True, help="User task prompt.")
+    run_parser.add_argument(
+        "--target-dir",
+        default=None,
+        help="Optional target working directory for runtime path confinement.",
+    )
     run_parser.add_argument("--system-prompt", default=None, help="Optional system prompt.")
     run_parser.add_argument(
         "--provider",
@@ -347,6 +357,11 @@ def main() -> int:
         action="store_true",
         help="Enable Plan Mode directory scaffolding.",
     )
+    mode_parser.add_argument(
+        "--target-dir",
+        default=None,
+        help="Optional target working directory for runtime path confinement.",
+    )
 
     plan_parser = subparsers.add_parser("plan", help="Run plan-mode lifecycle helpers.")
     plan_subparsers = plan_parser.add_subparsers(dest="plan_command")
@@ -360,6 +375,11 @@ def main() -> int:
         "--non-interactive",
         action="store_true",
         help="Disable interactive confirmations for this command context.",
+    )
+    plan_enter_parser.add_argument(
+        "--target-dir",
+        default=None,
+        help="Optional target working directory for runtime path confinement.",
     )
 
     plan_exit_parser = plan_subparsers.add_parser("exit", help="Exit plan mode with approval.")
@@ -389,6 +409,11 @@ def main() -> int:
         action="store_true",
         help="Disable interactive confirmations for this command context.",
     )
+    plan_exit_parser.add_argument(
+        "--target-dir",
+        default=None,
+        help="Optional target working directory for runtime path confinement.",
+    )
     policies_parser = subparsers.add_parser("policies", help="Inspect active policy rules.")
     policies_subparsers = policies_parser.add_subparsers(dest="policies_command")
     policies_list_parser = policies_subparsers.add_parser("list", help="List active policy rules.")
@@ -407,6 +432,11 @@ def main() -> int:
         "--plan-enabled",
         action="store_true",
         help="Enable Plan Mode directory scaffolding.",
+    )
+    policies_list_parser.add_argument(
+        "--target-dir",
+        default=None,
+        help="Optional target working directory for runtime path confinement.",
     )
 
     args = parser.parse_args()

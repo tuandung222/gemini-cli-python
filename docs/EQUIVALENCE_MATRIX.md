@@ -40,7 +40,7 @@ For each TS module, track:
 | `packages/core/src/core/geminiChat.ts` (Anthropic adapter path) | `src/py_agent_runtime/llm/anthropic_provider.py` | in_progress | Anthropic messages adapter baseline with env key loading | LLM-004 |
 | `packages/core/src/core/geminiChat.ts` (provider selection path) | `src/py_agent_runtime/llm/factory.py` | in_progress | Provider factory routes `openai`/`gemini`/`anthropic` | LLM-005 |
 | `packages/core/src/core/geminiChat.ts` (retry/error mapping path) | `src/py_agent_runtime/llm/retry.py` | done | Transient retry helper with retryable status/error mapping + configurable exponential backoff/cap | LLM-006 |
-| `packages/cli/src/config/config.ts` (approval/non-interactive) | `src/py_agent_runtime/cli/main.py` | done | CLI supports `chat`, `run`, `mode`, `plan enter`, `plan exit`, `policies list` with approval-mode + non-interactive controls and provider retry backoff knobs | CLI-001 |
+| `packages/cli/src/config/config.ts` (approval/non-interactive) | `src/py_agent_runtime/cli/main.py` | done | CLI supports `chat`, `run`, `mode`, `plan enter`, `plan exit`, `policies list` with approval-mode + non-interactive controls, provider retry backoff knobs, and `--target-dir` | CLI-001 |
 | `packages/core/src/agents/local-executor.test.ts` + scheduler/policy e2e paths | `tests/test_golden_scenarios.py` | in_progress | Golden scenarios cover plan lifecycle, missing plan, policy deny, cancellation, and non-interactive boundary | E2E-001 |
 
 ## Current test mapping

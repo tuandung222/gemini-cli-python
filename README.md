@@ -26,7 +26,7 @@ Authentication-specific features can be simplified or omitted.
 - [x] Subagent wrapper + invocation baseline with scheduler integration (`agents/subagent_tool.py`, `agents/agent_scheduler.py`)
 - [x] LLM provider core contracts + OpenAI adapter baseline (`llm/base_provider.py`, `llm/openai_provider.py`, `agents/llm_runner.py`)
 - [x] Provider factory baseline (`llm/factory.py`) with OpenAI/Gemini/Anthropic adapters wired
-- [x] CLI parity baseline (`cli/main.py`) for `chat`, `run`, `mode`, `plan enter/exit`, `policies list`, and retry backoff knobs
+- [x] CLI parity baseline (`cli/main.py`) for `chat`, `run`, `mode`, `plan enter/exit`, `policies list`, retry backoff knobs, and `--target-dir`
 - [x] Completion schema enforcement baseline for `complete_task` (`agents/completion_schema.py`, `agents/llm_runner.py`, `agents/subagent_tool.py`)
 - [x] Completion schema validator hardening (enum/const/combinators/string-numeric-array constraints)
 - [x] Golden/e2e boundary tests for plan/deny/cancellation/non-interactive/recovery (`tests/test_golden_scenarios.py`, `tests/test_llm_runner.py`, `tests/test_message_bus.py`)
@@ -36,7 +36,7 @@ Authentication-specific features can be simplified or omitted.
 
 ## Progress snapshot
 
-- `pytest`: `120 passed`
+- `pytest`: `126 passed`
 - `ruff check src tests`: pass
 - `mypy src/py_agent_runtime`: pass
 

@@ -97,3 +97,5 @@ This document summarizes built-in tools currently registered by the CLI runtime.
 - `plan enter`
 - `plan exit`
 - `policies list`
+
+Most runtime commands support `--target-dir` to evaluate tools/policies against a specified workspace root.

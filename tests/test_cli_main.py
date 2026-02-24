@@ -256,6 +256,32 @@ def test_cli_run_command_forwards_retry_settings_to_provider(monkeypatch, capsys
     assert captured["retry_max_delay_seconds"] == 1.1
 
 
+def test_cli_run_command_respects_target_dir(monkeypatch, capsys, tmp_path) -> None:  # noqa: ANN001
+    monkeypatch.setattr(
+        cli_main,
+        "create_provider",
+        lambda provider, model, **kwargs: FakeProvider(model),  # noqa: ARG005
+    )
+    monkeypatch.setattr(cli_main, "LLMAgentRunner", FakeRunner)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "py-agent-runtime",
+            "run",
+            "--prompt",
+            "Do work",
+            "--target-dir",
+            str(tmp_path),
+        ],
+    )
+    code = cli_main.main()
+    _ = capsys.readouterr()
+    assert code == 0
+    assert FakeRunner.last_config is not None
+    assert FakeRunner.last_config.target_dir == tmp_path.resolve()
+
+
 def test_cli_policies_list_command_outputs_grouped_policies(monkeypatch, capsys) -> None:  # noqa: ANN001
     monkeypatch.setattr(
         sys,
