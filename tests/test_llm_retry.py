@@ -47,3 +47,45 @@ def test_call_with_retries_stops_on_non_retryable_error() -> None:
         call_with_retries(_fn, max_retries=3)
     assert state["calls"] == 1
 
+
+def test_call_with_retries_supports_exponential_backoff() -> None:
+    state = {"calls": 0}
+    sleeps: list[float] = []
+
+    def _fn() -> str:
+        state["calls"] += 1
+        if state["calls"] < 4:
+            raise RetryableError("temporary", 503)
+        return "ok"
+
+    result = call_with_retries(
+        _fn,
+        max_retries=3,
+        base_delay_seconds=0.1,
+        sleep_fn=lambda seconds: sleeps.append(seconds),
+    )
+    assert result == "ok"
+    assert state["calls"] == 4
+    assert sleeps == [0.1, 0.2, 0.4]
+
+
+def test_call_with_retries_caps_backoff_at_max_delay() -> None:
+    state = {"calls": 0}
+    sleeps: list[float] = []
+
+    def _fn() -> str:
+        state["calls"] += 1
+        if state["calls"] < 4:
+            raise RetryableError("temporary", 503)
+        return "ok"
+
+    result = call_with_retries(
+        _fn,
+        max_retries=3,
+        base_delay_seconds=0.1,
+        max_delay_seconds=0.15,
+        sleep_fn=lambda seconds: sleeps.append(seconds),
+    )
+    assert result == "ok"
+    assert state["calls"] == 4
+    assert sleeps == [0.1, 0.15, 0.15]

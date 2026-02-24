@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from collections.abc import Callable
 from typing import TypeVar
 
@@ -19,9 +20,16 @@ def call_with_retries(
     *,
     max_retries: int,
     is_retryable: Callable[[Exception], bool] | None = None,
+    base_delay_seconds: float = 0.0,
+    max_delay_seconds: float | None = None,
+    sleep_fn: Callable[[float], None] = time.sleep,
 ) -> T:
     if max_retries < 0:
         raise ValueError("max_retries must be >= 0")
+    if base_delay_seconds < 0:
+        raise ValueError("base_delay_seconds must be >= 0")
+    if max_delay_seconds is not None and max_delay_seconds < 0:
+        raise ValueError("max_delay_seconds must be >= 0")
 
     checker = is_retryable or is_retryable_exception
     attempt = 0
@@ -32,6 +40,13 @@ def call_with_retries(
             if attempt >= max_retries or not checker(exc):
                 raise
             attempt += 1
+            delay = _compute_retry_delay(
+                retry_attempt=attempt,
+                base_delay_seconds=base_delay_seconds,
+                max_delay_seconds=max_delay_seconds,
+            )
+            if delay > 0:
+                sleep_fn(delay)
 
 
 def is_retryable_exception(exc: Exception) -> bool:
@@ -79,3 +94,15 @@ def _extract_error_code(exc: Exception) -> str | None:
                 if isinstance(code, str):
                     return code
     return None
+
+
+def _compute_retry_delay(
+    *,
+    retry_attempt: int,
+    base_delay_seconds: float,
+    max_delay_seconds: float | None,
+) -> float:
+    delay: float = float(base_delay_seconds) * (2.0 ** float(retry_attempt - 1))
+    if max_delay_seconds is not None and delay > max_delay_seconds:
+        return max_delay_seconds
+    return delay

@@ -26,14 +26,15 @@ Authentication-specific features can be simplified or omitted.
 - [x] Provider factory baseline (`llm/factory.py`) with OpenAI/Gemini/Anthropic adapters wired
 - [x] CLI parity baseline (`cli/main.py`) for `chat`, `run`, `mode`, and `plan enter/exit`
 - [x] Completion schema enforcement baseline for `complete_task` (`agents/completion_schema.py`, `agents/llm_runner.py`, `agents/subagent_tool.py`)
+- [x] Completion schema validator hardening (enum/const/combinators/string-numeric-array constraints)
 - [x] Golden/e2e boundary tests for plan/deny/cancellation/non-interactive/recovery (`tests/test_golden_scenarios.py`, `tests/test_llm_runner.py`, `tests/test_message_bus.py`)
 - [x] Runtime non-interactive policy coercion baseline (`runtime/config.py`, `policy/engine.py`)
-- [x] Provider retry baseline for transient API errors across OpenAI/Gemini/Anthropic adapters (`llm/retry.py`)
+- [x] Provider retry hardening with configurable exponential backoff/cap for transient API errors (`llm/retry.py`)
 - [x] Baseline tests/lint/type-check passing (`pytest`, `ruff`, `mypy`)
 
 ## Progress snapshot
 
-- `pytest`: `100 passed`
+- `pytest`: `106 passed`
 - `ruff check src tests`: pass
 - `mypy src/py_agent_runtime`: pass
 
@@ -115,7 +116,6 @@ cd /Users/admin/TuanDung/repos/gemini-cli-python
 ## Next implementation target
 
 Implement next parity milestones:
-- harden completion schema validation with richer JSON Schema coverage and typed output handling,
 - strengthen provider parity for advanced tool-call edge cases and retry/backoff paths,
 - expand Phase 8 golden/e2e scenarios for cancellation/non-interactive/recovery boundary conditions.
 
