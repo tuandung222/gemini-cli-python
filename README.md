@@ -27,12 +27,12 @@ Authentication-specific features can be simplified or omitted.
 - [x] Completion schema enforcement baseline for `complete_task` (`agents/completion_schema.py`, `agents/llm_runner.py`, `agents/subagent_tool.py`)
 - [x] Golden scenario baseline tests for plan/deny/protocol flows (`tests/test_golden_scenarios.py`)
 - [x] Runtime non-interactive policy coercion baseline (`runtime/config.py`, `policy/engine.py`)
-- [x] Provider retry baseline for transient API errors (`llm/retry.py`, provider integrations)
+- [x] Provider retry baseline for transient API errors across OpenAI/Gemini/Anthropic adapters (`llm/retry.py`)
 - [x] Baseline tests/lint/type-check passing (`pytest`, `ruff`, `mypy`)
 
 ## Progress snapshot
 
-- `pytest`: `77 passed`
+- `pytest`: `79 passed`
 - `ruff check src tests`: pass
 - `mypy src/py_agent_runtime`: pass
 

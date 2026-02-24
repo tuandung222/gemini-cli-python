@@ -11,9 +11,14 @@ from py_agent_runtime.llm.types import LLMMessage
 class FakeAnthropicMessages:
     def __init__(self) -> None:
         self.last_payload: dict[str, object] | None = None
+        self.calls = 0
+        self.failures: list[Exception] = []
 
     def create(self, **kwargs: object) -> object:
+        self.calls += 1
         self.last_payload = dict(kwargs)
+        if self.failures:
+            raise self.failures.pop(0)
         return SimpleNamespace(
             content=[
                 SimpleNamespace(type="text", text="ok"),
@@ -31,6 +36,12 @@ class FakeAnthropicMessages:
 class FakeAnthropicClient:
     def __init__(self) -> None:
         self.messages = FakeAnthropicMessages()
+
+
+class RetryableError(RuntimeError):
+    def __init__(self, message: str, status_code: int) -> None:
+        super().__init__(message)
+        self.status_code = status_code
 
 
 def test_anthropic_provider_requires_env_key(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -71,3 +82,17 @@ def test_anthropic_provider_reads_env_and_calls_messages_create(
     assert isinstance(payload["tools"], list)
     assert payload["temperature"] == 0.3
 
+
+def test_anthropic_provider_retries_transient_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-anthropic-key")
+    fake_client = FakeAnthropicClient()
+    fake_client.messages.failures = [RetryableError("service unavailable", 503)]
+    provider = AnthropicChatProvider(
+        model="claude-3-7-sonnet-latest",
+        client=fake_client,
+        max_retries=1,
+    )
+
+    response = provider.generate(messages=[LLMMessage(role="user", content="hello")])
+    assert response.content == "ok"
+    assert fake_client.messages.calls == 2

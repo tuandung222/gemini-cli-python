@@ -11,9 +11,14 @@ from py_agent_runtime.llm.types import LLMMessage
 class FakeGeminiModels:
     def __init__(self) -> None:
         self.last_payload: dict[str, object] | None = None
+        self.calls = 0
+        self.failures: list[Exception] = []
 
     def generate_content(self, **kwargs: object) -> object:
+        self.calls += 1
         self.last_payload = dict(kwargs)
+        if self.failures:
+            raise self.failures.pop(0)
         return SimpleNamespace(
             text="ok",
             function_calls=[
@@ -30,6 +35,12 @@ class FakeGeminiModels:
 class FakeGeminiClient:
     def __init__(self) -> None:
         self.models = FakeGeminiModels()
+
+
+class RetryableError(RuntimeError):
+    def __init__(self, message: str, status_code: int) -> None:
+        super().__init__(message)
+        self.status_code = status_code
 
 
 def test_gemini_provider_requires_env_key(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -70,3 +81,13 @@ def test_gemini_provider_reads_env_and_calls_generate_content(
     assert isinstance(payload["contents"], list)
     assert isinstance(payload["config"], dict)
 
+
+def test_gemini_provider_retries_transient_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("GEMINI_API_KEY", "test-gemini-key")
+    fake_client = FakeGeminiClient()
+    fake_client.models.failures = [RetryableError("rate limited", 429)]
+    provider = GeminiChatProvider(model="gemini-2.5-pro", client=fake_client, max_retries=1)
+
+    response = provider.generate(messages=[LLMMessage(role="user", content="hello")])
+    assert response.content == "ok"
+    assert fake_client.models.calls == 2
