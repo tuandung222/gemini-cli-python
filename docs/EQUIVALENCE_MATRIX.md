@@ -40,9 +40,10 @@ For each TS module, track:
 | `packages/core/src/core/geminiChat.ts` (OpenAI-parity target) | `src/py_agent_runtime/llm/openai_provider.py` | done | OpenAI chat-completions adapter with env key loading + retry backoff knobs | LLM-002 |
 | `packages/core/src/core/geminiChat.ts` (Gemini adapter path) | `src/py_agent_runtime/llm/gemini_provider.py` | done | Gemini generate-content adapter with env key loading + retry backoff knobs | LLM-003 |
 | `packages/core/src/core/geminiChat.ts` (Anthropic adapter path) | `src/py_agent_runtime/llm/anthropic_provider.py` | done | Anthropic messages adapter with env key loading + retry backoff knobs | LLM-004 |
-| `packages/core/src/core/geminiChat.ts` (provider selection path) | `src/py_agent_runtime/llm/factory.py` | done | Provider factory routes `openai`/`gemini`/`anthropic` and forwards retry settings | LLM-005 |
+| `packages/core/src/core/geminiChat.ts` (provider selection path) | `src/py_agent_runtime/llm/factory.py` | done | Provider factory routes `openai`/`gemini`/`anthropic`/`huggingface` and forwards retry settings | LLM-005 |
 | `packages/core/src/core/geminiChat.ts` (retry/error mapping path) | `src/py_agent_runtime/llm/retry.py` | done | Transient retry helper with retryable status/error mapping + configurable exponential backoff/cap | LLM-006 |
-| `packages/cli/src/config/config.ts` (approval/non-interactive) | `src/py_agent_runtime/cli/main.py` | done | CLI supports `chat`, `run`, `mode`, `plan enter`, `plan exit`, `policies list`, `tools list` with approval-mode + non-interactive controls, provider retry backoff knobs, and `--target-dir` | CLI-001 |
+| `packages/core/src/core/geminiChat.ts` (extension beyond baseline parity) | `src/py_agent_runtime/llm/huggingface_provider.py` | done | HuggingFace Inference Provider via OpenAI-compatible router (`HF_TOKEN`, configurable base URL) | LLM-007 |
+| `packages/cli/src/config/config.ts` (approval/non-interactive) | `src/py_agent_runtime/cli/main.py` | done | CLI supports `chat`, `run`, `mode`, `plan enter`, `plan exit`, `policies list`, `tools list` with approval-mode + non-interactive controls, provider retry backoff knobs, env-default provider/model, and `--target-dir` | CLI-001 |
 | `packages/core/src/agents/local-executor.test.ts` + scheduler/policy e2e paths | `tests/test_golden_scenarios.py` | done | Golden scenarios cover plan lifecycle, missing plan, policy deny, cancellation, and non-interactive boundary | E2E-001 |
 
 ## Current test mapping
@@ -65,6 +66,7 @@ For each TS module, track:
 | LLM-004 | `tests/test_anthropic_provider.py` | Anthropic adapter env key handling and request/response mapping |
 | LLM-005 | `tests/test_llm_factory.py` | Provider factory routing coverage |
 | LLM-006 | `tests/test_llm_retry.py` | Retry helper behavior on transient vs non-retryable API errors |
+| LLM-007 | `tests/test_huggingface_provider.py`, `tests/test_llm_factory.py`, `tests/test_cli_main.py` | HuggingFace token/env handling + factory routing + CLI env-default provider/model behavior |
 | BUS-001 | `tests/test_message_bus.py` | Confirmation auto allow/deny/ask-user flow + request timeout boundary |
 | CLI-001 | `tests/test_cli_main.py` | CLI command wiring for `chat`, `run`, `mode`, `plan enter/exit`, `policies list`, `tools list`, and `--target-dir` |
 | E2E-001 | `tests/test_golden_scenarios.py` | Golden scenario regression coverage for plan/policy/cancellation/non-interactive flows |

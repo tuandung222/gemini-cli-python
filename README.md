@@ -1,7 +1,7 @@
 # gemini-cli-python
 
 ![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-141%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-145%20passed-brightgreen)
 ![Ruff](https://img.shields.io/badge/ruff-all%20checks%20passed-success)
 ![Mypy](https://img.shields.io/badge/mypy-no%20issues%20found-success)
 ![Status](https://img.shields.io/badge/status-MVP%20parity%20complete-1f6feb)
@@ -55,7 +55,7 @@ Build and validation follow a parity-first, TDD-oriented process:
 - [x] Agent registry dynamic policy baseline (`agents/registry.py`)
 - [x] Subagent wrapper + invocation baseline with scheduler integration (`agents/subagent_tool.py`, `agents/agent_scheduler.py`)
 - [x] LLM provider core contracts + OpenAI adapter baseline (`llm/base_provider.py`, `llm/openai_provider.py`, `agents/llm_runner.py`)
-- [x] Provider factory baseline (`llm/factory.py`) with OpenAI/Gemini/Anthropic adapters wired
+- [x] Provider factory baseline (`llm/factory.py`) with OpenAI/Gemini/Anthropic/HuggingFace adapters wired
 - [x] CLI parity baseline (`cli/main.py`) for `chat`, `run`, `mode`, `plan enter/exit`, `policies list`, `tools list`, retry backoff knobs, and `--target-dir`
 - [x] Completion schema enforcement baseline for `complete_task` (`agents/completion_schema.py`, `agents/llm_runner.py`, `agents/subagent_tool.py`)
 - [x] Completion schema validator hardening (enum/const/combinators/string-numeric-array constraints)
@@ -67,7 +67,7 @@ Build and validation follow a parity-first, TDD-oriented process:
 ## Progress snapshot
 
 - Last validated: `2026-02-24`
-- `pytest`: `141 passed`
+- `pytest`: `145 passed`
 - `ruff check src tests`: pass
 - `mypy src/py_agent_runtime`: pass
 
@@ -97,7 +97,7 @@ cd /Users/admin/TuanDung/repos/gemini-cli-python
 .venv/bin/python -m mypy src/py_agent_runtime
 ```
 
-## OpenAI configuration
+## Provider configuration
 
 Runtime reads OpenAI credentials from environment only:
 
@@ -110,9 +110,20 @@ Other provider keys:
 ```bash
 export GEMINI_API_KEY="your_gemini_key_here"      # or GOOGLE_API_KEY
 export ANTHROPIC_API_KEY="your_anthropic_key_here"
+export HF_TOKEN="your_huggingface_token_here"     # or HUGGINGFACEHUB_API_TOKEN
 ```
 
 Do not hardcode keys in source, test files, or `.env` committed to git.
+
+Optional defaults for flexible provider/model selection:
+
+```bash
+export PY_AGENT_DEFAULT_PROVIDER="huggingface"     # openai|gemini|anthropic|huggingface
+export PY_AGENT_DEFAULT_MODEL="moonshotai/Kimi-K2.5"
+```
+
+If `--provider` / `--model` are omitted, CLI resolves provider from `PY_AGENT_DEFAULT_PROVIDER`
+and model from `PY_AGENT_DEFAULT_MODEL` (or provider-specific fallback).
 
 Key classes for OpenAI flow:
 - `src/py_agent_runtime/llm/openai_provider.py`: OpenAI chat-completions adapter
@@ -122,12 +133,23 @@ Key classes for OpenAI flow:
 Other provider adapters:
 - `src/py_agent_runtime/llm/gemini_provider.py`
 - `src/py_agent_runtime/llm/anthropic_provider.py`
+- `src/py_agent_runtime/llm/huggingface_provider.py`
 
 Quick smoke command (uses OpenAI key from environment):
 
 ```bash
 cd /Users/admin/TuanDung/repos/gemini-cli-python
 .venv/bin/python -m py_agent_runtime.cli.main chat --prompt "Say hello from OpenAI adapter"
+```
+
+HuggingFace Inference Provider smoke command:
+
+```bash
+cd /Users/admin/TuanDung/repos/gemini-cli-python
+.venv/bin/python -m py_agent_runtime.cli.main chat \
+  --provider huggingface \
+  --model moonshotai/Kimi-K2.5 \
+  --prompt "Say hello from HuggingFace Inference Provider"
 ```
 
 Agent loop command (provider -> scheduler -> tools):

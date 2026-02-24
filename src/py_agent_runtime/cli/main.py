@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +24,14 @@ from py_agent_runtime.tools.write_file import WriteFileTool
 from py_agent_runtime.tools.write_todos import WriteTodosTool
 from py_agent_runtime.policy.types import PolicyRule
 
+SUPPORTED_PROVIDERS = ("openai", "gemini", "anthropic", "huggingface")
+PROVIDER_DEFAULT_MODELS: dict[str, str] = {
+    "openai": "gpt-4.1-mini",
+    "gemini": "gemini-2.5-pro",
+    "anthropic": "claude-3-7-sonnet-latest",
+    "huggingface": "moonshotai/Kimi-K2.5",
+}
+
 
 def _register_default_tools(config: RuntimeConfig) -> None:
     config.tool_registry.register_tool(GlobSearchTool())
@@ -38,13 +47,34 @@ def _register_default_tools(config: RuntimeConfig) -> None:
     config.tool_registry.register_tool(WriteTodosTool())
 
 
+def _default_provider_from_env() -> str:
+    raw_value = os.environ.get("PY_AGENT_DEFAULT_PROVIDER", "openai")
+    normalized = raw_value.strip().lower()
+    if normalized in SUPPORTED_PROVIDERS:
+        return normalized
+    return "openai"
+
+
+def _resolve_model(provider: str, model: str | None) -> str:
+    explicit = (model or "").strip()
+    if explicit:
+        return explicit
+
+    env_model = os.environ.get("PY_AGENT_DEFAULT_MODEL", "").strip()
+    if env_model:
+        return env_model
+
+    return PROVIDER_DEFAULT_MODELS.get(provider.strip().lower(), "gpt-4.1-mini")
+
+
 def _chat_command(
     prompt: str,
     provider_name: str,
-    model: str,
+    model: str | None,
     temperature: float | None,
 ) -> int:
-    provider = create_provider(provider_name, model=model)
+    resolved_model = _resolve_model(provider_name, model)
+    provider = create_provider(provider_name, model=resolved_model)
     response = provider.generate(
         messages=[LLMMessage(role="user", content=prompt)],
         temperature=temperature,
@@ -60,9 +90,10 @@ def _print_json_payload(payload: dict[str, Any]) -> None:
 
 
 def _run_command(args: argparse.Namespace) -> int:
+    resolved_model = _resolve_model(args.provider, args.model)
     provider = create_provider(
         args.provider,
-        model=args.model,
+        model=resolved_model,
         max_retries=args.max_retries,
         retry_base_delay_seconds=args.retry_base_delay_seconds,
         retry_max_delay_seconds=args.retry_max_delay_seconds,
@@ -81,7 +112,7 @@ def _run_command(args: argparse.Namespace) -> int:
         config=config,
         provider=provider,
         max_turns=args.max_turns,
-        model=args.model,
+        model=resolved_model,
         temperature=args.temperature,
         enable_recovery_turn=not args.disable_recovery_turn,
         completion_schema=completion_schema,
@@ -288,6 +319,7 @@ def _load_completion_schema(schema_file: str | None) -> dict[str, Any] | None:
 
 
 def main() -> int:
+    default_provider = _default_provider_from_env()
     parser = argparse.ArgumentParser(description="py-agent-runtime CLI")
     subparsers = parser.add_subparsers(dest="command")
 
@@ -295,11 +327,15 @@ def main() -> int:
     chat_parser.add_argument("--prompt", required=True, help="User prompt.")
     chat_parser.add_argument(
         "--provider",
-        default="openai",
-        choices=["openai", "gemini", "anthropic"],
+        default=default_provider,
+        choices=list(SUPPORTED_PROVIDERS),
         help="LLM provider backend.",
     )
-    chat_parser.add_argument("--model", default="gpt-4.1-mini", help="OpenAI model name.")
+    chat_parser.add_argument(
+        "--model",
+        default=None,
+        help="Optional model name. If omitted, provider-specific default is used.",
+    )
     chat_parser.add_argument(
         "--temperature",
         type=float,
@@ -319,11 +355,15 @@ def main() -> int:
     run_parser.add_argument("--system-prompt", default=None, help="Optional system prompt.")
     run_parser.add_argument(
         "--provider",
-        default="openai",
-        choices=["openai", "gemini", "anthropic"],
+        default=default_provider,
+        choices=list(SUPPORTED_PROVIDERS),
         help="LLM provider backend.",
     )
-    run_parser.add_argument("--model", default="gpt-4.1-mini", help="Model name.")
+    run_parser.add_argument(
+        "--model",
+        default=None,
+        help="Optional model name. If omitted, provider-specific default is used.",
+    )
     run_parser.add_argument("--temperature", type=float, default=None, help="Sampling temperature.")
     run_parser.add_argument(
         "--max-retries",

@@ -256,6 +256,37 @@ def test_cli_run_command_forwards_retry_settings_to_provider(monkeypatch, capsys
     assert captured["retry_max_delay_seconds"] == 1.1
 
 
+def test_cli_run_command_uses_env_default_provider_and_model(monkeypatch, capsys) -> None:  # noqa: ANN001
+    captured: dict[str, object] = {}
+
+    def _create_provider(provider: str, model: str, **kwargs: object) -> FakeProvider:
+        captured["provider"] = provider
+        captured["model"] = model
+        captured.update(kwargs)
+        return FakeProvider(model)
+
+    monkeypatch.setenv("PY_AGENT_DEFAULT_PROVIDER", "huggingface")
+    monkeypatch.setenv("PY_AGENT_DEFAULT_MODEL", "moonshotai/Kimi-K2.5")
+    monkeypatch.setattr(cli_main, "create_provider", _create_provider)
+    monkeypatch.setattr(cli_main, "LLMAgentRunner", FakeRunner)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "py-agent-runtime",
+            "run",
+            "--prompt",
+            "Do work",
+        ],
+    )
+    code = cli_main.main()
+    _ = capsys.readouterr()
+
+    assert code == 0
+    assert captured["provider"] == "huggingface"
+    assert captured["model"] == "moonshotai/Kimi-K2.5"
+
+
 def test_cli_run_command_respects_target_dir(monkeypatch, capsys, tmp_path) -> None:  # noqa: ANN001
     monkeypatch.setattr(
         cli_main,

@@ -46,6 +46,18 @@ def test_factory_routes_to_anthropic_provider(monkeypatch: pytest.MonkeyPatch) -
     assert provider.model == "claude-x"
 
 
+def test_factory_routes_to_huggingface_provider(monkeypatch: pytest.MonkeyPatch) -> None:
+    class FakeHuggingFaceProvider:
+        def __init__(self, model: str, **kwargs: object) -> None:
+            self.model = model
+            self.kwargs = kwargs
+
+    monkeypatch.setattr(llm_factory, "HuggingFaceInferenceProvider", FakeHuggingFaceProvider)
+    provider = llm_factory.create_provider("huggingface", model="moonshotai/Kimi-K2.5")
+    assert isinstance(provider, FakeHuggingFaceProvider)
+    assert provider.model == "moonshotai/Kimi-K2.5"
+
+
 def test_factory_forwards_retry_settings_to_provider(monkeypatch: pytest.MonkeyPatch) -> None:
     class FakeOpenAIProvider:
         def __init__(self, model: str, **kwargs: object) -> None:

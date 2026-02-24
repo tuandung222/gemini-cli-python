@@ -3,6 +3,7 @@ from __future__ import annotations
 from py_agent_runtime.llm.anthropic_provider import AnthropicChatProvider
 from py_agent_runtime.llm.base_provider import LLMProvider
 from py_agent_runtime.llm.gemini_provider import GeminiChatProvider
+from py_agent_runtime.llm.huggingface_provider import HuggingFaceInferenceProvider
 from py_agent_runtime.llm.openai_provider import OpenAIChatProvider
 
 
@@ -32,6 +33,13 @@ def create_provider(
     if normalized == "anthropic":
         return AnthropicChatProvider(
             model=model or "claude-3-7-sonnet-latest",
+            max_retries=max_retries,
+            retry_base_delay_seconds=retry_base_delay_seconds,
+            retry_max_delay_seconds=retry_max_delay_seconds,
+        )
+    if normalized == "huggingface":
+        return HuggingFaceInferenceProvider(
+            model=model or "moonshotai/Kimi-K2.5",
             max_retries=max_retries,
             retry_base_delay_seconds=retry_base_delay_seconds,
             retry_max_delay_seconds=retry_max_delay_seconds,
