@@ -25,6 +25,17 @@ Build and validation follow a parity-first, TDD-oriented process:
 4. Run quality gates: `pytest`, `ruff check src tests`, `mypy src/py_agent_runtime`.
 5. Update equivalence/docs status only after all gates are green.
 
+## Where to start reading
+
+- Full reading roadmap: `docs/CODE_READING_GUIDE.md`
+- Entrypoint:
+  - `pyproject.toml`: script `py-agent-runtime = "py_agent_runtime.cli.main:main"`
+  - `src/py_agent_runtime/cli/main.py`: `main()` and `_run_command(...)`
+- Agent loop:
+  - `src/py_agent_runtime/agents/llm_runner.py`: `LLMAgentRunner.run(...)`
+- Orchestration loop:
+  - `src/py_agent_runtime/scheduler/scheduler.py`: `Scheduler.schedule(...)` and `_process_single_request(...)`
+
 ## Current status
 
 - [x] Porting workspace created
