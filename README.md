@@ -21,11 +21,12 @@ Authentication-specific features can be simplified or omitted.
 - [x] Scheduler confirmation + policy-update loop (`scheduler/*`, `bus/message_bus.py`)
 - [x] Agent registry dynamic policy baseline (`agents/registry.py`)
 - [x] Subagent wrapper + invocation baseline with scheduler integration (`agents/subagent_tool.py`, `agents/agent_scheduler.py`)
+- [x] LLM provider core contracts + OpenAI adapter baseline (`llm/base_provider.py`, `llm/openai_provider.py`, `agents/llm_runner.py`)
 - [x] Baseline tests/lint/type-check passing (`pytest`, `ruff`, `mypy`)
 
 ## Progress snapshot
 
-- `pytest`: `34 passed`
+- `pytest`: `43 passed`
 - `ruff check src tests`: pass
 - `mypy src/py_agent_runtime`: pass
 
@@ -50,13 +51,36 @@ python3 -m venv .venv
 cd /Users/admin/TuanDung/repos/gemini-cli-python
 .venv/bin/python -m pytest
 .venv/bin/python -m ruff check src tests
+.venv/bin/python -m mypy src/py_agent_runtime
+```
+
+## OpenAI configuration
+
+Runtime reads OpenAI credentials from environment only:
+
+```bash
+export OPENAI_API_KEY="your_key_here"
+```
+
+Do not hardcode keys in source, test files, or `.env` committed to git.
+
+Key classes for OpenAI flow:
+- `src/py_agent_runtime/llm/openai_provider.py`: OpenAI chat-completions adapter
+- `src/py_agent_runtime/llm/normalizer.py`: canonical tool-call normalization
+- `src/py_agent_runtime/agents/llm_runner.py`: provider -> scheduler -> tool execution loop
+
+Quick smoke command (uses OpenAI key from environment):
+
+```bash
+cd /Users/admin/TuanDung/repos/gemini-cli-python
+.venv/bin/python -m py_agent_runtime.cli.main chat --prompt "Say hello from OpenAI adapter"
 ```
 
 ## Next implementation target
 
 Implement next parity milestones:
 - harden Phase 5 with richer subagent turn loop semantics and final-warning recovery behavior,
-- start Phase 6 provider abstraction (`gemini/openai/anthropic` adapter interface),
+- expand Phase 6 with Gemini/Anthropic adapters on top of existing OpenAI baseline,
 - start minimal CLI mode wiring for approval/non-interactive behavior.
 
 ## Scope notes

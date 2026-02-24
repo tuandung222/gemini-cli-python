@@ -25,6 +25,9 @@ For each TS module, track:
 | `packages/core/src/agents/subagent-tool-wrapper.ts` | `src/py_agent_runtime/agents/subagent_tool.py` | in_progress | Subagent tool wrapper + local invocation baseline implemented | AGT-003 |
 | `packages/core/src/agents/agent-scheduler.ts` | `src/py_agent_runtime/agents/agent_scheduler.py` | in_progress | Agent-scoped scheduling helper implemented | AGT-004 |
 | `packages/core/src/confirmation-bus/message-bus.ts` | `src/py_agent_runtime/bus/message_bus.py` | in_progress | Pub/sub + synchronous request/response + policy-aware confirmation handling | BUS-001 |
+| `packages/core/src/agents/local-executor.ts` (LLM call loop parts) | `src/py_agent_runtime/agents/llm_runner.py` | in_progress | Provider-driven tool-call loop baseline with scheduler + `complete_task` contract | AGT-005 |
+| `packages/core/src/core/geminiChat.ts` (provider abstraction surface) | `src/py_agent_runtime/llm/base_provider.py` | in_progress | Canonical provider interface for multi-model adapters | LLM-001 |
+| `packages/core/src/core/geminiChat.ts` (OpenAI-parity target) | `src/py_agent_runtime/llm/openai_provider.py` | in_progress | OpenAI chat-completions adapter with env key loading | LLM-002 |
 | `packages/cli/src/config/config.ts` (approval/non-interactive) | `src/py_agent_runtime/cli/main.py` | planned | CLI mode flags/exclusions pending | CLI-001 |
 
 ## Current test mapping
@@ -38,6 +41,9 @@ For each TS module, track:
 | AGT-001 | `tests/test_local_executor.py` | `complete_task` protocol + unauthorized-tool guard + allowed-tool filtering |
 | AGT-002 | `tests/test_agent_registry.py` | Dynamic policy behavior for subagent registration |
 | AGT-003 | `tests/test_subagent_tool.py` | Subagent invocation, anti-recursion, allowlist, and completion protocol |
+| AGT-005 | `tests/test_llm_runner.py` | Provider-driven agent loop with scheduler and complete_task termination |
+| LLM-001 | `tests/test_llm_normalizer.py` | Canonical message/tool-call normalization for OpenAI payloads |
+| LLM-002 | `tests/test_openai_provider.py` | OpenAI adapter env key handling and request serialization |
 
 ## Deferred items
 
