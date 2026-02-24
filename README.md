@@ -104,6 +104,17 @@ cd /Users/admin/TuanDung/repos/gemini-cli-python
 .venv/bin/python -m py_agent_runtime.cli.main run --prompt "Create a plan and finish with complete_task"
 ```
 
+Agent loop with provider retry backoff tuning:
+
+```bash
+cd /Users/admin/TuanDung/repos/gemini-cli-python
+.venv/bin/python -m py_agent_runtime.cli.main run \
+  --prompt "Implement task with resilient retries" \
+  --max-retries 4 \
+  --retry-base-delay-seconds 0.2 \
+  --retry-max-delay-seconds 1.0
+```
+
 Agent loop with completion schema validation:
 
 ```bash
