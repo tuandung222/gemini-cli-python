@@ -30,7 +30,11 @@ class FakeRunner:
 
 
 def test_cli_chat_command(monkeypatch, capsys) -> None:  # noqa: ANN001
-    monkeypatch.setattr(cli_main, "create_provider", lambda provider, model: FakeProvider(model))
+    monkeypatch.setattr(
+        cli_main,
+        "create_provider",
+        lambda provider, model, **kwargs: FakeProvider(model),  # noqa: ARG005
+    )
     monkeypatch.setattr(sys, "argv", ["py-agent-runtime", "chat", "--prompt", "ping"])
     code = cli_main.main()
     captured = capsys.readouterr()
@@ -47,7 +51,11 @@ def test_cli_without_command_shows_help(monkeypatch, capsys) -> None:  # noqa: A
 
 
 def test_cli_run_command_wires_non_interactive_and_approval_mode(monkeypatch, capsys) -> None:  # noqa: ANN001
-    monkeypatch.setattr(cli_main, "create_provider", lambda provider, model: FakeProvider(model))
+    monkeypatch.setattr(
+        cli_main,
+        "create_provider",
+        lambda provider, model, **kwargs: FakeProvider(model),  # noqa: ARG005
+    )
     monkeypatch.setattr(cli_main, "LLMAgentRunner", FakeRunner)
     monkeypatch.setattr(
         sys,
@@ -77,7 +85,11 @@ def test_cli_run_command_wires_non_interactive_and_approval_mode(monkeypatch, ca
 
 
 def test_cli_run_command_loads_completion_schema_file(monkeypatch, capsys, tmp_path) -> None:  # noqa: ANN001
-    monkeypatch.setattr(cli_main, "create_provider", lambda provider, model: FakeProvider(model))
+    monkeypatch.setattr(
+        cli_main,
+        "create_provider",
+        lambda provider, model, **kwargs: FakeProvider(model),  # noqa: ARG005
+    )
     monkeypatch.setattr(cli_main, "LLMAgentRunner", FakeRunner)
 
     schema_file = tmp_path / "schema.json"
@@ -105,7 +117,11 @@ def test_cli_run_command_loads_completion_schema_file(monkeypatch, capsys, tmp_p
 
 
 def test_cli_run_command_rejects_invalid_schema_file(monkeypatch, capsys, tmp_path) -> None:  # noqa: ANN001
-    monkeypatch.setattr(cli_main, "create_provider", lambda provider, model: FakeProvider(model))
+    monkeypatch.setattr(
+        cli_main,
+        "create_provider",
+        lambda provider, model, **kwargs: FakeProvider(model),  # noqa: ARG005
+    )
     monkeypatch.setattr(cli_main, "LLMAgentRunner", FakeRunner)
 
     schema_file = tmp_path / "schema.json"
@@ -200,3 +216,41 @@ def test_cli_plan_exit_command_approves_plan(monkeypatch, capsys, tmp_path) -> N
     assert payload["success"] is True
     assert payload["approval_mode"] == "autoEdit"
     assert payload["approved_plan_path"] == str(plan_file.resolve())
+
+
+def test_cli_run_command_forwards_retry_settings_to_provider(monkeypatch, capsys) -> None:  # noqa: ANN001
+    captured: dict[str, object] = {}
+
+    def _create_provider(provider: str, model: str, **kwargs: object) -> FakeProvider:
+        captured["provider"] = provider
+        captured["model"] = model
+        captured.update(kwargs)
+        return FakeProvider(model)
+
+    monkeypatch.setattr(cli_main, "create_provider", _create_provider)
+    monkeypatch.setattr(cli_main, "LLMAgentRunner", FakeRunner)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "py-agent-runtime",
+            "run",
+            "--prompt",
+            "Do work",
+            "--max-retries",
+            "4",
+            "--retry-base-delay-seconds",
+            "0.2",
+            "--retry-max-delay-seconds",
+            "1.1",
+        ],
+    )
+    code = cli_main.main()
+    _ = capsys.readouterr()
+
+    assert code == 0
+    assert captured["provider"] == "openai"
+    assert captured["model"] == "gpt-4.1-mini"
+    assert captured["max_retries"] == 4
+    assert captured["retry_base_delay_seconds"] == 0.2
+    assert captured["retry_max_delay_seconds"] == 1.1

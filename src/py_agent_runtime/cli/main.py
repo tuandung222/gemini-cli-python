@@ -43,7 +43,13 @@ def _print_json_payload(payload: dict[str, Any]) -> None:
 
 
 def _run_command(args: argparse.Namespace) -> int:
-    provider = create_provider(args.provider, model=args.model)
+    provider = create_provider(
+        args.provider,
+        model=args.model,
+        max_retries=args.max_retries,
+        retry_base_delay_seconds=args.retry_base_delay_seconds,
+        retry_max_delay_seconds=args.retry_max_delay_seconds,
+    )
     config = RuntimeConfig(
         target_dir=Path.cwd(),
         interactive=not args.non_interactive,
@@ -211,6 +217,24 @@ def main() -> int:
     )
     run_parser.add_argument("--model", default="gpt-4.1-mini", help="Model name.")
     run_parser.add_argument("--temperature", type=float, default=None, help="Sampling temperature.")
+    run_parser.add_argument(
+        "--max-retries",
+        type=int,
+        default=2,
+        help="Maximum transient API retries per provider request.",
+    )
+    run_parser.add_argument(
+        "--retry-base-delay-seconds",
+        type=float,
+        default=0.0,
+        help="Base delay in seconds for exponential retry backoff.",
+    )
+    run_parser.add_argument(
+        "--retry-max-delay-seconds",
+        type=float,
+        default=None,
+        help="Optional max delay cap in seconds for exponential retry backoff.",
+    )
     run_parser.add_argument("--max-turns", type=int, default=15, help="Maximum tool-call turns.")
     run_parser.add_argument(
         "--approval-mode",
