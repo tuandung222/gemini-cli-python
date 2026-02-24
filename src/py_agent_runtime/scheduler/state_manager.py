@@ -22,5 +22,6 @@ class SchedulerStateManager:
         self._completed.append(call)
 
     def drain_completed(self) -> list[CompletedToolCall]:
-        return list(self._completed)
-
+        drained = list(self._completed)
+        self._completed.clear()
+        return drained

@@ -20,18 +20,19 @@ Authentication-specific features can be simplified or omitted.
 - [x] Core plan tools (`enter_plan_mode`, `exit_plan_mode`, `write_todos`)
 - [x] Scheduler confirmation + policy-update loop (`scheduler/*`, `bus/message_bus.py`)
 - [x] Agent registry dynamic policy baseline (`agents/registry.py`)
+- [x] Subagent wrapper + invocation baseline with scheduler integration (`agents/subagent_tool.py`, `agents/agent_scheduler.py`)
 - [x] Baseline tests/lint/type-check passing (`pytest`, `ruff`, `mypy`)
 
 ## Progress snapshot
 
-- `pytest`: `28 passed`
+- `pytest`: `34 passed`
 - `ruff check src tests`: pass
 - `mypy src/py_agent_runtime`: pass
 
 Phase-level status (from `docs/PORTING_PLAN.md`):
 - Phase 0-1: mostly complete (scope freeze + skeleton/types)
 - Phase 2-4: core baseline implemented (policy/scheduler/plan tools), parity hardening still in progress
-- Phase 5: started (local executor protocol + anti-recursion baseline + dynamic subagent policy), full subagent invocation flow still pending
+- Phase 5: in progress (local executor protocol + anti-recursion + dynamic subagent policy + subagent wrapper/invocation baseline)
 - Phase 6-8: not started (provider adapters, CLI parity, end-to-end hardening)
 
 ## Local setup
@@ -53,10 +54,10 @@ cd /Users/admin/TuanDung/repos/gemini-cli-python
 
 ## Next implementation target
 
-Implement Phase 5 expansion:
-- subagent tool wrapper + invocation flow,
-- isolated tool surface for subagents with anti-recursion filtering,
-- end-to-end local agent loop integration with scheduler.
+Implement next parity milestones:
+- harden Phase 5 with richer subagent turn loop semantics and final-warning recovery behavior,
+- start Phase 6 provider abstraction (`gemini/openai/anthropic` adapter interface),
+- start minimal CLI mode wiring for approval/non-interactive behavior.
 
 ## Scope notes
 

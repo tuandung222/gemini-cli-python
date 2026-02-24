@@ -2,11 +2,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from py_agent_runtime.bus.message_bus import MessageBus
 from py_agent_runtime.policy.engine import PolicyEngine
 from py_agent_runtime.runtime.modes import ApprovalMode
 from py_agent_runtime.tools.registry import ToolRegistry
+
+if TYPE_CHECKING:
+    from py_agent_runtime.agents.registry import AgentRegistry
 
 
 @dataclass
@@ -19,6 +23,7 @@ class RuntimeConfig:
     policy_engine: PolicyEngine = field(default_factory=PolicyEngine)
     tool_registry: ToolRegistry = field(default_factory=ToolRegistry)
     message_bus: MessageBus = field(init=False)
+    agent_registry: AgentRegistry = field(init=False)
     plans_dir: Path = field(init=False)
 
     def __post_init__(self) -> None:
@@ -28,6 +33,9 @@ class RuntimeConfig:
             self.plans_dir.mkdir(parents=True, exist_ok=True)
         self.policy_engine.set_approval_mode(self.approval_mode)
         self.message_bus = MessageBus(policy_engine=self.policy_engine)
+        from py_agent_runtime.agents.registry import AgentRegistry
+
+        self.agent_registry = AgentRegistry(self)
 
     def set_approval_mode(self, mode: ApprovalMode) -> None:
         self.approval_mode = mode
@@ -44,3 +52,6 @@ class RuntimeConfig:
 
     def get_message_bus(self) -> MessageBus:
         return self.message_bus
+
+    def get_agent_registry(self) -> AgentRegistry:
+        return self.agent_registry

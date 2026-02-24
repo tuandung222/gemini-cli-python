@@ -12,12 +12,19 @@ from py_agent_runtime.scheduler.types import (
     ToolCallResponseInfo,
 )
 from py_agent_runtime.tools.base import ToolConfirmationOutcome
+from py_agent_runtime.tools.registry import ToolRegistry
 
 
 class Scheduler:
-    def __init__(self, config: RuntimeConfig, state: SchedulerStateManager | None = None) -> None:
+    def __init__(
+        self,
+        config: RuntimeConfig,
+        state: SchedulerStateManager | None = None,
+        tool_registry: ToolRegistry | None = None,
+    ) -> None:
         self._config = config
         self._state = state or SchedulerStateManager()
+        self._tool_registry = tool_registry or config.tool_registry
 
     def schedule(self, requests: list[ToolCallRequestInfo]) -> list[CompletedToolCall]:
         self._state.enqueue(requests)
@@ -32,7 +39,7 @@ class Scheduler:
 
     def _process_single_request(self, request: ToolCallRequestInfo) -> CompletedToolCall:
         confirmation_outcome: ToolConfirmationOutcome | None = None
-        tool = self._config.tool_registry.get_tool(request.name)
+        tool = self._tool_registry.get_tool(request.name)
         if tool is None:
             return CompletedToolCall(
                 status=CoreToolCallStatus.ERROR,

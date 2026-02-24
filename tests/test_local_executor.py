@@ -65,3 +65,14 @@ def test_build_allowed_tool_names_filters_missing_tools() -> None:
         configured_tool_names=["read_file", "generalist", "nonexistent"],
     )
     assert allowed == {"read_file"}
+
+
+def test_process_function_calls_can_skip_complete_task_requirement() -> None:
+    result = LocalAgentExecutor.process_function_calls(
+        [FunctionCall(name="read_file", args={"path": "x"})],
+        allowed_tool_names={"read_file"},
+        enforce_complete_task=False,
+    )
+    assert result.task_completed is False
+    assert result.terminate_reason is None
+    assert result.errors == []

@@ -119,3 +119,21 @@ def test_scheduler_proceed_always_updates_policy() -> None:
     second = scheduler.schedule([ToolCallRequestInfo(name="enter_plan_mode", args={})])
     assert second[0].status == CoreToolCallStatus.SUCCESS
 
+
+def test_scheduler_results_do_not_leak_between_schedule_calls() -> None:
+    config = RuntimeConfig(target_dir=Path("."), interactive=True, plan_enabled=True)
+    config.tool_registry.register_tool(EnterPlanModeTool())
+    config.policy_engine.add_rule(
+        PolicyRule(
+            tool_name="enter_plan_mode",
+            decision=PolicyDecision.ALLOW,
+            priority=9.0,
+        )
+    )
+
+    scheduler = Scheduler(config)
+    first = scheduler.schedule([ToolCallRequestInfo(name="enter_plan_mode", args={})])
+    second = scheduler.schedule([ToolCallRequestInfo(name="enter_plan_mode", args={})])
+
+    assert len(first) == 1
+    assert len(second) == 1

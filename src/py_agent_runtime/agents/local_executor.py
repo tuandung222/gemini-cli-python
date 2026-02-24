@@ -46,8 +46,16 @@ class LocalAgentExecutor:
     def process_function_calls(
         function_calls: list[FunctionCall],
         allowed_tool_names: AbstractSet[str] | None = None,
+        enforce_complete_task: bool = True,
     ) -> ProcessedTurn:
         if not function_calls:
+            if not enforce_complete_task:
+                return ProcessedTurn(
+                    task_completed=False,
+                    submitted_output=None,
+                    terminate_reason=None,
+                    errors=[],
+                )
             return ProcessedTurn(
                 task_completed=False,
                 submitted_output=None,
@@ -97,6 +105,14 @@ class LocalAgentExecutor:
                 submitted_output=None,
                 terminate_reason=AgentTerminateMode.ERROR,
                 errors=errors,
+            )
+
+        if not enforce_complete_task:
+            return ProcessedTurn(
+                task_completed=False,
+                submitted_output=None,
+                terminate_reason=None,
+                errors=[],
             )
 
         return ProcessedTurn(

@@ -22,6 +22,8 @@ For each TS module, track:
 | `packages/core/src/config/config.ts` (plan-relevant parts) | `src/py_agent_runtime/runtime/config.py` | in_progress | Mode + plans_dir + approved path baseline | RT-001 |
 | `packages/core/src/agents/local-executor.ts` | `src/py_agent_runtime/agents/local_executor.py` | in_progress | `complete_task` contract + unauthorized guard + allowed-tool filtering (anti-recursion baseline) | AGT-001 |
 | `packages/core/src/agents/registry.ts` | `src/py_agent_runtime/agents/registry.py` | in_progress | Dynamic policy registration for local/remote agents implemented | AGT-002 |
+| `packages/core/src/agents/subagent-tool-wrapper.ts` | `src/py_agent_runtime/agents/subagent_tool.py` | in_progress | Subagent tool wrapper + local invocation baseline implemented | AGT-003 |
+| `packages/core/src/agents/agent-scheduler.ts` | `src/py_agent_runtime/agents/agent_scheduler.py` | in_progress | Agent-scoped scheduling helper implemented | AGT-004 |
 | `packages/core/src/confirmation-bus/message-bus.ts` | `src/py_agent_runtime/bus/message_bus.py` | in_progress | Pub/sub + synchronous request/response + policy-aware confirmation handling | BUS-001 |
 | `packages/cli/src/config/config.ts` (approval/non-interactive) | `src/py_agent_runtime/cli/main.py` | planned | CLI mode flags/exclusions pending | CLI-001 |
 
@@ -35,6 +37,7 @@ For each TS module, track:
 | SCH-001 | `tests/test_scheduler.py` | Scheduler allow/deny baseline |
 | AGT-001 | `tests/test_local_executor.py` | `complete_task` protocol + unauthorized-tool guard + allowed-tool filtering |
 | AGT-002 | `tests/test_agent_registry.py` | Dynamic policy behavior for subagent registration |
+| AGT-003 | `tests/test_subagent_tool.py` | Subagent invocation, anti-recursion, allowlist, and completion protocol |
 
 ## Deferred items
 
