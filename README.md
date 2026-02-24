@@ -136,6 +136,11 @@ Deferred scope remains:
 - IDE-integration specific UX,
 - full extension ecosystem management surface.
 
+## Tracing audit artifacts
+
+- GPT-4 query set for repeatable tracing audits: `docs/tracing/GPT4_TRACING_QUERIES.md`
+- Current tracing quality assessment: `docs/tracing/TRACING_AUDIT.md`
+
 ## Scope notes
 
 - This port prioritizes orchestration equivalence first.
