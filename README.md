@@ -32,7 +32,7 @@ Authentication-specific features can be simplified or omitted.
 
 ## Progress snapshot
 
-- `pytest`: `79 passed`
+- `pytest`: `81 passed`
 - `ruff check src tests`: pass
 - `mypy src/py_agent_runtime`: pass
 

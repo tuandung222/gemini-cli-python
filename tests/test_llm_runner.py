@@ -240,3 +240,38 @@ def test_llm_runner_enforces_completion_schema_failure() -> None:
     assert result.success is False
     assert result.error is not None
     assert "Completion output does not satisfy schema" in result.error
+
+
+def test_llm_runner_non_interactive_denies_ask_user_tool() -> None:
+    config = RuntimeConfig(target_dir=Path("."), interactive=False)
+    echo = EchoTool()
+    config.tool_registry.register_tool(echo)
+    config.policy_engine.add_rule(
+        PolicyRule(
+            tool_name="echo",
+            decision=PolicyDecision.ASK_USER,
+            priority=9.0,
+        )
+    )
+
+    provider = FakeProvider(
+        responses=[
+            LLMTurnResponse(
+                content=None,
+                tool_calls=[
+                    LLMToolCall(name="echo", args={"text": "hello"}, call_id="c1"),
+                ],
+            )
+        ]
+    )
+    runner = LLMAgentRunner(
+        config=config,
+        provider=provider,
+        max_turns=2,
+        enable_recovery_turn=False,
+    )
+    result = runner.run("do task")
+
+    assert result.success is False
+    assert result.error is not None
+    assert "denied by policy" in result.error.lower()
