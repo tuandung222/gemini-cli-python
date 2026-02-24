@@ -305,3 +305,26 @@ def test_cli_policies_list_command_outputs_grouped_policies(monkeypatch, capsys)
 
     default_rules = payload["policies"]["default"]
     assert any(rule.get("tool_name") == "read_file" and rule.get("decision") == "allow" for rule in default_rules)
+
+
+def test_cli_tools_list_command_outputs_registered_tools(monkeypatch, capsys) -> None:  # noqa: ANN001
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "py-agent-runtime",
+            "tools",
+            "list",
+        ],
+    )
+    code = cli_main.main()
+    captured = capsys.readouterr()
+    assert code == 0
+
+    payload = json.loads(captured.out)
+    assert payload["success"] is True
+    tools = payload["tools"]
+    names = [item["name"] for item in tools]
+    assert "read_file" in names
+    assert "write_file" in names
+    assert "run_shell_command" in names

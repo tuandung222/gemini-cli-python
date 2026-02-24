@@ -169,6 +169,37 @@ def _policies_command(args: argparse.Namespace) -> int:
     return 1
 
 
+def _tools_list_command(args: argparse.Namespace) -> int:
+    target_dir = Path(args.target_dir).resolve() if args.target_dir else Path.cwd().resolve()
+    config = RuntimeConfig(
+        target_dir=target_dir,
+        interactive=not args.non_interactive,
+        plan_enabled=args.plan_enabled,
+        approval_mode=ApprovalMode(args.approval_mode),
+    )
+    _register_default_tools(config)
+    tools = []
+    for tool in config.tool_registry.get_all_tools():
+        tools.append({"name": tool.name, "description": tool.description})
+    tools.sort(key=lambda item: item["name"])
+    _print_json_payload(
+        {
+            "success": True,
+            "approval_mode": config.get_approval_mode().value,
+            "interactive": config.interactive,
+            "tools": tools,
+        }
+    )
+    return 0
+
+
+def _tools_command(args: argparse.Namespace) -> int:
+    if args.tools_command == "list":
+        return _tools_list_command(args)
+    print("Error: missing tools subcommand. Use `tools list`.")
+    return 1
+
+
 def _plan_enter_command(args: argparse.Namespace) -> int:
     target_dir = Path(args.target_dir).resolve() if args.target_dir else Path.cwd().resolve()
     config = RuntimeConfig(
@@ -438,6 +469,30 @@ def main() -> int:
         default=None,
         help="Optional target working directory for runtime path confinement.",
     )
+    tools_parser = subparsers.add_parser("tools", help="Inspect registered tools.")
+    tools_subparsers = tools_parser.add_subparsers(dest="tools_command")
+    tools_list_parser = tools_subparsers.add_parser("list", help="List registered tool names.")
+    tools_list_parser.add_argument(
+        "--approval-mode",
+        default=ApprovalMode.DEFAULT.value,
+        choices=[mode.value for mode in ApprovalMode],
+        help="Approval mode policy for context display.",
+    )
+    tools_list_parser.add_argument(
+        "--non-interactive",
+        action="store_true",
+        help="Run command context as non-interactive.",
+    )
+    tools_list_parser.add_argument(
+        "--plan-enabled",
+        action="store_true",
+        help="Enable Plan Mode directory scaffolding.",
+    )
+    tools_list_parser.add_argument(
+        "--target-dir",
+        default=None,
+        help="Optional target working directory for runtime path confinement.",
+    )
 
     args = parser.parse_args()
     try:
@@ -451,6 +506,8 @@ def main() -> int:
             return _plan_command(args)
         if args.command == "policies":
             return _policies_command(args)
+        if args.command == "tools":
+            return _tools_command(args)
     except Exception as exc:
         print(f"Error: {exc}")
         return 2
