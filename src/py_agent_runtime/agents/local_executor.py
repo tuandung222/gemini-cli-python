@@ -2,10 +2,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Mapping
+from typing import Any, Mapping, AbstractSet
 
 
 TASK_COMPLETE_TOOL_NAME = "complete_task"
+
+
+def create_unauthorized_tool_error(tool_name: str) -> str:
+    return f"Unauthorized tool call: '{tool_name}' is not available to this agent."
 
 
 class AgentTerminateMode(str, Enum):
@@ -39,7 +43,10 @@ class LocalAgentExecutor:
     """
 
     @staticmethod
-    def process_function_calls(function_calls: list[FunctionCall]) -> ProcessedTurn:
+    def process_function_calls(
+        function_calls: list[FunctionCall],
+        allowed_tool_names: AbstractSet[str] | None = None,
+    ) -> ProcessedTurn:
         if not function_calls:
             return ProcessedTurn(
                 task_completed=False,
@@ -57,6 +64,8 @@ class LocalAgentExecutor:
 
         for call in function_calls:
             if call.name != TASK_COMPLETE_TOOL_NAME:
+                if allowed_tool_names is not None and call.name not in allowed_tool_names:
+                    errors.append(create_unauthorized_tool_error(call.name))
                 continue
 
             if task_completed:
@@ -99,4 +108,3 @@ class LocalAgentExecutor:
                 f"'{TASK_COMPLETE_TOOL_NAME}' to finalize the session."
             ],
         )
-
